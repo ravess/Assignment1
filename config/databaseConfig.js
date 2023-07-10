@@ -1,5 +1,3 @@
-const mysql = require("mysql2");
-
 // Single connection
 // const dbConnect = {
 //   getConnection: function () {
@@ -7,11 +5,13 @@ const mysql = require("mysql2");
 //       host: process.env.DB_LOCAL_URI,
 //       user: process.env.DB_USER,
 //       password: process.env.DB_PASS,
-//       database: process.env.DB_LOCAL_URI,
+//       database: process.env.DB_NAME,
 //     });
 //     return conn;
 //   },
 // };
+
+const mysql = require('mysql2');
 
 // Connection Pool would be advantageous due to optimizing of resources
 const dbConnect = {

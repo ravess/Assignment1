@@ -1,25 +1,46 @@
-// const config = require('../config/config');
-// const jwt = require('jsonwebtoken');
-// const bcrypt = require('bcryptjs');
+const dbConnect = require('../config/databaseConfig');
 
-const dbConnect = require("../config/databaseConfig");
+// const UserModel = {
+//   getAllUsers: function () {
+//     return new Promise((resolve, reject) => {
+//       const pool = dbConnect.getConnection();
+//       pool.getConnection((error, connection) => {
+//         if (error) {
+//           reject(error);
+//           return;
+//         }
+//         const query = 'SELECT * FROM accounts';
+
+//         connection.query(query, (error, results) => {
+//           connection.release(); // Release the connection back to the pool
+//           if (error) {
+//             reject(error);
+//             return;
+//           }
+//           resolve(results); // Resolve the promise with the results
+//         });
+//       });
+//     });
+//   },
+// };
 
 const UserModel = {
-  // Need to amend the code based here.
-  getAllUsers: function () {
-    console.log(`gotten into getconnection method`, dbConnect.getConnection());
-    dbConnect.getConnection((error, connection) => {
+  getAllUsers: async function (callback) {
+    const pool = dbConnect.getConnection();
+    pool.getConnection((error, connection) => {
       if (error) {
-        throw error;
+        callback(error, null);
+        return;
       }
-      const query = "SELECT * FROM accounts";
-      console.log(query);
+      const query = 'SELECT * FROM accounts';
+
       connection.query(query, (error, results) => {
         connection.release(); // Release the connection back to the pool
         if (error) {
-          throw error;
+          callback(error, null);
+          return;
         }
-        return results; // Assuming all users is expected
+        callback(null, results); // Pass the results to the callback
       });
     });
   },
