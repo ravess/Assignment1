@@ -1,16 +1,43 @@
 const express = require("express");
 const session = require("express-session");
-const bodyParser = require("body-parser");
+const dotenv = require("dotenv");
 const app = express();
 const port = 3000;
 
+// Setting up config.env files variables **config files has to be loaded before routes and database connection made
+dotenv.config({ path: "./.env" });
+
+const errorMiddleware = require("./middlewares/errors");
+const ErrorHandler = require("./utils/errorHandler");
+
 // Inititalize the app and add middleware
 app.set("view engine", "pug"); // Setup the pug
-app.use(bodyParser.urlencoded({ extended: true })); // Setup the body parser to handle form submits
-app.use(session({ secret: "super-secret" })); // Session setup
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json()); // Setup the body parser to handle form submits
+app.use(
+  session({ secret: "super-secret", resave: true, saveUninitialized: true })
+); // Session setup
+
+const user = require("./routes/userRoute");
+app.use("/api/v1", user);
+
+// Handled unhandled routes (make sure is below the routes)
+app.all("*", (req, res, next) => {
+  next(new ErrorHandler(`${req.originalUrl} route not found`, 404));
+});
+
+// Middlewares to handle error
+app.use(errorMiddleware);
+
+/** App listening on port */
+app.listen(port, () => {
+  console.log(`MyAssignment1 app listening at http://localhost:${port}`);
+});
 
 /** Handle login display and form submit */
+/*
 app.get("/login", (req, res) => {
+    console.log(req.body)
   if (req.session.isLoggedIn === true) {
     return res.redirect("/");
   }
@@ -26,14 +53,17 @@ app.post("/login", (req, res) => {
     res.render("login", { error: "Username or password is incorrect" });
   }
 });
+*/
 
 /** Handle logout function */
+/*
 app.get("/logout", (req, res) => {
   req.session.isLoggedIn = false;
   res.redirect("/");
 });
-
+*/
 /** Simulated bank functionality */
+/*
 app.get("/", (req, res) => {
   res.render("index", { isLoggedIn: req.session.isLoggedIn });
 });
@@ -57,8 +87,4 @@ app.get("/account", (req, res) => {
 app.get("/contact", (req, res) => {
   res.send("Our address : 321 Main Street, Beverly Hills.");
 });
-
-/** App listening on port */
-app.listen(port, () => {
-  console.log(`MyBank app listening at http://localhost:${port}`);
-});
+*/
