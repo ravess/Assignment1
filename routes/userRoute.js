@@ -12,5 +12,6 @@ const {
 router.route('/').get(getAllUsers);
 router.route('/login').post(loginUser);
 router.route('/user/:userid').put(updateUser);
+router.route('/user/register').put(createUser);
 
 module.exports = router;
