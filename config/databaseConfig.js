@@ -11,11 +11,11 @@
 //   },
 // };
 
-const mysql = require('mysql2');
+const mysql = require("mysql2");
 
 // Connection Pool would be advantageous due to optimizing of resources
 const dbConnect = {
-  getConnection: function () {
+  createConnPool: function () {
     const conn = mysql.createPool({
       connectionLimit: 10, // Adjust the limit as per your requirements
       host: process.env.DB_LOCAL_URI,

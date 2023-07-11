@@ -1,4 +1,6 @@
-const dbConnect = require('../config/databaseConfig');
+const dbConn = require("../config/databaseConfig");
+const jwt = require("jsonwebtoken");
+const sendToken = require("../utils/jwtToken");
 
 // const UserModel = {
 //   getAllUsers: function () {
@@ -25,14 +27,14 @@ const dbConnect = require('../config/databaseConfig');
 // };
 
 const UserModel = {
-  getAllUsers: async function (callback) {
-    const pool = dbConnect.getConnection();
+  getAllUsers: function (callback) {
+    const pool = dbConn.createConnPool();
     pool.getConnection((error, connection) => {
       if (error) {
         callback(error, null);
         return;
       }
-      const query = 'SELECT * FROM accounts';
+      const query = "SELECT * FROM accounts";
 
       connection.query(query, (error, results) => {
         connection.release(); // Release the connection back to the pool
@@ -41,6 +43,33 @@ const UserModel = {
           return;
         }
         callback(null, results); // Pass the results to the callback
+      });
+    });
+  },
+  loginUser: function (username, userpass, callback) {
+    const pool = dbConn.createConnPool();
+    pool.getConnection((error, connection) => {
+      console.log(`it comes in here`);
+      if (error) {
+        callback(error, null);
+        return;
+      }
+      const query =
+        "SELECT * FROM accounts where username=? and userpassword=?";
+      connection.query(query, [username, userpass], (error, results) => {
+        connection.release();
+        if (error) {
+          callback(error, null);
+          return;
+        }
+
+        //dont put in model layer first.
+        // let token;
+        // if (results.length == 1) {
+        //   token = jwt.sign({ user: results[0].username}, process.env.JWT_SECRET, {expiresIn: '300s'});
+        // }
+
+        return callback(null, results);
       });
     });
   },

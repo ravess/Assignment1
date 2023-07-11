@@ -1,6 +1,6 @@
-const User = require('../models/userModel');
-const catchAsyncError = require('../middlewares/catchAsyncError');
-const ErrorHandler = require('../utils/errorHandler');
+const User = require("../models/userModel");
+const catchAsyncError = require("../middlewares/catchAsyncError");
+const ErrorHandler = require("../utils/errorHandler");
 
 // GET ALL USERS
 // exports.getAllUsers = catchAsyncError(async (req, res, next) => {
@@ -22,10 +22,10 @@ const UserController = {
     try {
       User.getAllUsers((error, users) => {
         if (error) {
-          console.error('Error retrieving users:', error);
+          console.error("Error retrieving users:", error);
           res.status(500).json({
             success: false,
-            error: 'Error retrieving users',
+            error: "Error retrieving users",
           });
           return;
         }
@@ -37,10 +37,31 @@ const UserController = {
         });
       });
     } catch (error) {
-      console.error('Error in getAllUsers controller:', error);
+      console.error("Error in getAllUsers controller:", error);
       res.status(500).json({
         success: false,
-        error: 'Error retrieving users',
+        error: "Error retrieving users",
+      });
+    }
+  },
+  loginUser: (req, res) => {
+    const { username, password } = req.body;
+    try {
+      User.loginUser(username, password, (error, user) => {
+        if (error) {
+          console.log(`some shyt`);
+          return;
+        }
+        res.status(200).json({
+          success: true,
+          user,
+        });
+      });
+    } catch (error) {
+      console.error("Error in loginUser controller:", error);
+      res.status(500).json({
+        success: false,
+        error: "Error retrieving users",
       });
     }
   },
