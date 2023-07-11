@@ -25,7 +25,6 @@ const UserController = {
           console.error("Error retrieving users:", error);
           res.status(500).json({
             success: false,
-            error: "Error retrieving all users",
           });
           return;
         }
@@ -99,6 +98,29 @@ const UserController = {
         message: "User Updated",
       });
     });
+  },
+  insertUser: (req, res) => {
+    //Need to amend the usergroup logic here
+    const { username, usergroup, userpassword, useremail } = req.body;
+    //Come back and do the logic later
+    User.insertUser(
+      username,
+      usergroup,
+      userpassword,
+      useremail,
+      (error, results) => {
+        if (error) {
+          res.status(400).json({
+            success: false,
+            message: "Unable to create new User",
+          });
+        }
+        res.status(200).json({
+          success: true,
+          message: `${results.affectedRows} row(s) inserted`,
+        });
+      }
+    );
   },
 };
 
