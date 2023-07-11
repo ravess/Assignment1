@@ -11,7 +11,7 @@
 //   },
 // };
 
-const mysql = require("mysql2");
+const mysql = require('mysql2');
 
 // Connection Pool would be advantageous due to optimizing of resources
 const dbConnect = {
