@@ -72,6 +72,16 @@ exports.updateUser = catchAsyncError(async (req, res, next) => {
 
 // For Roy to work on
 exports.createUser = catchAsyncError(async (req, res, next) => {
+  // Need to amend some logic here before sending into mysql statement
   const { username, useremail, userpassword, usergroup, userisActive } =
     req.body;
+
+  const user = await User.createUser(
+    username,
+    userpassword,
+    useremail,
+    usergroup,
+    userisActive
+  );
+  sendToken(user, 200, res);
 });

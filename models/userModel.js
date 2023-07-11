@@ -1,4 +1,5 @@
 const dbConn = require('../config/databaseConfig');
+const bcrypt = require('bcryptjs');
 
 const UserModel = {
   getAllUsers: async () => {
@@ -37,13 +38,21 @@ const UserModel = {
   },
 
   // For Roy to work on
-  createUser: async () => {
+  createUser: async (username, userpassword, useremail, usergroup) => {
     const pool = dbConn.createConnPool();
     const connection = await pool.promise().getConnection();
+    // To do hashing here before sending it into the database/repo.
     try {
+      const hashedpassword = await bcrypt.hash(userpassword, 15);
       const query =
-        'insert into accounts(username,useremail,user,password) values(?,?,?,?)';
-      const [results] = await connection.query(query);
+        'insert into accounts(username,userpassword,useremail,usergroup,userisActive) values(?,?,?,?,?)';
+      const [results] = await connection.query(query, [
+        username,
+        hashedpassword,
+        useremail,
+        usergroup,
+        1,
+      ]);
       return results;
     } finally {
       connection.release();
