@@ -49,7 +49,6 @@ const UserModel = {
   loginUser: function (username, userpass, callback) {
     const pool = dbConn.createConnPool();
     pool.getConnection((error, connection) => {
-      console.log(`it comes in here`);
       if (error) {
         callback(error, null);
         return;
@@ -70,6 +69,25 @@ const UserModel = {
         // }
 
         return callback(null, results);
+      });
+    });
+  },
+  updateUser: function (clauses, values, callback) {
+    const pool = dbConn.createConnPool();
+    pool.getConnection((error, connection) => {
+      if (error) {
+        callback(error, null);
+        return;
+      }
+      const query = `update accounts set ${clauses} where userid=?`;
+
+      connection.query(query, values, (error, results) => {
+        connection.release(); // Release the connection back to the pool
+        if (error) {
+          callback(error, null);
+          return;
+        }
+        callback(null, results); // Pass the results to the callback
       });
     });
   },

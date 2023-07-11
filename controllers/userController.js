@@ -25,7 +25,7 @@ const UserController = {
           console.error("Error retrieving users:", error);
           res.status(500).json({
             success: false,
-            error: "Error retrieving users",
+            error: "Error retrieving all users",
           });
           return;
         }
@@ -49,7 +49,11 @@ const UserController = {
     try {
       User.loginUser(username, password, (error, user) => {
         if (error) {
-          console.log(`some shyt`);
+          console.error("Error retrieving users:", error);
+          res.status(500).json({
+            success: false,
+            error: "Error retrieving all users",
+          });
           return;
         }
         res.status(200).json({
@@ -61,9 +65,40 @@ const UserController = {
       console.error("Error in loginUser controller:", error);
       res.status(500).json({
         success: false,
-        error: "Error retrieving users",
+        error: "Error loginIn users",
       });
     }
+  },
+  updateUser: (req, res) => {
+    let clauses = [];
+    let values = [];
+    for (const property in req.body) {
+      if (property === "userid") {
+        res.status(400).json({
+          success: false,
+          meesage: "Not Allowed to change.",
+        });
+      }
+      clauses.push(property + "=?");
+      values.push(req.body[property]);
+    }
+    if (values) {
+      values.push(req.params.userid);
+    }
+    // This is to allow me to dynamic to accept any json values
+    clauses = clauses.join(",");
+    User.updateUser(clauses, values, (error, results) => {
+      if (error) {
+        res.status(400).json({
+          success: false,
+          meesage: "Not Allowed to change.",
+        });
+      }
+      res.status(200).json({
+        success: true,
+        message: "User Updated",
+      });
+    });
   },
 };
 
