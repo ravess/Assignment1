@@ -1,14 +1,14 @@
-const User = require('../models/userModel');
-const catchAsyncError = require('../middlewares/catchAsyncError');
-const ErrorHandler = require('../utils/errorHandler');
-const sendToken = require('../utils/jwtToken');
+const User = require("../models/userModel");
+const catchAsyncError = require("../middlewares/catchAsyncError");
+const ErrorHandler = require("../utils/errorHandler");
+const sendToken = require("../utils/jwtToken");
 
 // GET ALL USERS
 exports.getAllUsers = catchAsyncError(async (req, res, next) => {
   const users = await User.getAllUsers();
 
   if (!users || users.length === 0) {
-    return next(new ErrorHandler('Unable to find any users', 404));
+    return next(new ErrorHandler("Unable to find any users", 404));
   }
   res.status(200).json({
     success: true,
@@ -18,18 +18,21 @@ exports.getAllUsers = catchAsyncError(async (req, res, next) => {
 });
 
 exports.loginUser = catchAsyncError(async (req, res, next) => {
-  const { username, password } = req.body;
-
+  const { username, userpassword } = req.body;
   // No email or password handler before submitting to the model layer
-  if (!username || !password) {
+  if (!username || !userpassword) {
     return next(new ErrorHandler(`Please enter username and Password`, 400));
   }
 
-  const user = await User.loginUser(username, password);
+  // Need to resolve login bug why when there is no user
+  const user = await User.loginUser(username, userpassword);
 
   // Check if there is user in database
-  if (!user) {
-    return next(new ErrorHandler('Invalid Email or Password', 401));
+  console.log(Boolean(user));
+  console.log(typeof user);
+  console.log(user);
+  if (!user[0]) {
+    return next(new ErrorHandler("Invalid Email or Password", 401));
   }
 
   // Check if password is correct
@@ -44,29 +47,29 @@ exports.updateUser = catchAsyncError(async (req, res, next) => {
   let clauses = [];
   let values = [];
   for (const property in req.body) {
-    if (property === 'userid') {
+    if (property === "userid") {
       res.status(400).json({
         success: false,
-        meesage: 'Not Allowed to change.',
+        meesage: "Not Allowed to change.",
       });
     }
-    clauses.push(property + '=?');
+    clauses.push(property + "=?");
     values.push(req.body[property]);
   }
   if (values) {
     values.push(req.params.userid);
   }
   // The above code is to allow me to dynamicly accept any json values
-  clauses = clauses.join(',');
-  const user = await User.updateUser(clauses, values);
+  clauses = clauses.join(",");
+  const results = await User.updateUser(clauses, values);
 
-  if (!user) {
-    return next(new ErrorHandler('User not found', 404));
+  if (!results) {
+    return next(new ErrorHandler("User not found", 404));
   }
   res.status(200).json({
     success: true,
-    message: 'User is updated',
-    data: user,
+    message: "User is updated",
+    data: `${results.affectedRows} row(s) is updated`,
   });
 });
 
@@ -76,12 +79,17 @@ exports.createUser = catchAsyncError(async (req, res, next) => {
   const { username, useremail, userpassword, usergroup, userisActive } =
     req.body;
 
-  const user = await User.createUser(
+  const results = await User.createUser(
     username,
     userpassword,
     useremail,
     usergroup,
     userisActive
   );
-  sendToken(user, 200, res);
+
+  res.status(200).json({
+    success: true,
+    message: "User is created",
+    data: `${results.affectedRows} row(s) is inserted`,
+  });
 });
