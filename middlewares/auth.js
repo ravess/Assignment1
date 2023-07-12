@@ -4,7 +4,7 @@ const catchAsyncError = require('../middlewares/catchAsyncError');
 const ErrorHandler = require('../utils/errorHandler');
 
 // Check if the user is authenticated or not this will pull out req.user with the relevant id from login users
-exports.isAuthenticatedUser = catchAsyncError(async (req, res, next) => {
+exports.isLoggedIn = catchAsyncError(async (req, res, next) => {
   let token;
   if (
     req.headers.authorization &&

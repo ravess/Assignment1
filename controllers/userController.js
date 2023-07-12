@@ -42,7 +42,7 @@ exports.loginUser = catchAsyncError(async (req, res, next) => {
   if (!isPasswordMatched) {
     return next(new ErrorHandler(`Invalid Email or Password`, 401));
   }
-
+  req.session.userid = user[0].userid;
   sendToken(user, 200, res);
 });
 
@@ -76,7 +76,7 @@ exports.updateUser = catchAsyncError(async (req, res, next) => {
   });
 });
 
-// For Roy to work on
+// For Roy to work on usergroup logic here.**************
 exports.createUser = catchAsyncError(async (req, res, next) => {
   // Need to amend some logic here before sending into mysql statement
   const { username, useremail, userpassword, usergroup, userisActive } =
@@ -94,6 +94,13 @@ exports.createUser = catchAsyncError(async (req, res, next) => {
       )
     );
   }
+
+  // Need come back check if User exist, maybe through validation middleware?
+  // const existingUser = await User.getUserByUsernameOrEmail(username, useremail);
+  // if (existingUser) {
+  //   return next(new ErrorHandler('Username or email already exists', 409));
+  // }
+
   const hashedpassword = await bcrypt.hash(userpassword, 15);
   const results = await User.createUser(
     username,

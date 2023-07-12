@@ -8,12 +8,12 @@ const {
   updateUser,
   createUser,
 } = require('../controllers/userController');
-const { isAuthenticatedUser } = require('../middlewares/auth');
+const { isLoggedIn } = require('../middlewares/auth');
 
 // User Login Routes
 router.route('/').get(getAllUsers);
 router.route('/login').post(loginUser);
-router.route('/user/:userid').put(isAuthenticatedUser, updateUser);
-router.route('/user/register').post(createUser);
+router.route('/user/:userid').put(isLoggedIn, updateUser);
+router.route('/user/register').post(isLoggedIn, createUser);
 
 module.exports = router;

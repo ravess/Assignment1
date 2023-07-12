@@ -4,6 +4,13 @@ const catchAsyncError = require('../middlewares/catchAsyncError');
 //
 
 exports.logout = catchAsyncError(async (req, res, next) => {
+  const { userid } = req.session;
+
+  // Clear the session for the user
+  req.session.destroy();
+
+  // Remove the user's active session from the tracking
+  delete activeSessions[userid];
   res.cookie('token', 'none', {
     expires: new Date(Date.now()),
     httpOnly: true,
