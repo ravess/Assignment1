@@ -1,11 +1,11 @@
-const dbConn = require('../config/databaseConfig');
+const dbConn = require("../config/databaseConfig");
 const pool = dbConn.createConnPool();
 
 const UserModel = {
   getAllUsers: async () => {
     const connection = await pool.promise().getConnection();
     try {
-      const query = 'SELECT * FROM accounts';
+      const query = "SELECT * FROM accounts";
       const [results] = await connection.query(query);
       return results;
     } finally {
@@ -15,7 +15,7 @@ const UserModel = {
   getUser: async (userid) => {
     const connection = await pool.promise().getConnection();
     try {
-      const query = 'SELECT * FROM accounts where userid=?';
+      const query = "SELECT * FROM accounts where userid=?";
       const [results] = await connection.query(query, [userid]);
       return results;
     } finally {
@@ -25,7 +25,7 @@ const UserModel = {
   loginUser: async (username) => {
     const connection = await pool.promise().getConnection();
     try {
-      const query = 'SELECT * FROM accounts where username=?';
+      const query = "SELECT * FROM accounts where username=?";
       const [results] = await connection.query(query, [username]);
       return results;
     } finally {
@@ -53,7 +53,7 @@ const UserModel = {
 
     try {
       const query =
-        'insert into accounts(username,userpassword,useremail,usergroup,userisActive) values(?,?,?,?,?)';
+        "insert into accounts(username,userpassword,useremail,usergroup,userisActive) values(?,?,?,?,?)";
       const [results] = await connection.query(query, [
         username,
         hashedpassword,
@@ -66,6 +66,20 @@ const UserModel = {
       connection.release();
     }
   },
+  checkGroupUser: async (userid, usergroup) => {
+    const connection = await pool.promise().getConnection();
+  },
+
+  //CheckGroupUser comes here
+
+  // handling users roles the ...roles when passed in with ('employer', 'admin') it
+  // it collects in an array ['employer', 'admin']
+
+  /*
+SELECT col_a
+FROM table_a
+WHERE col_b = 'userid' AND table_b LIKE '%admin%'
+*/
 };
 
 module.exports = UserModel;
