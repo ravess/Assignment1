@@ -5,7 +5,7 @@ const UserModel = {
   getAllUsers: async () => {
     const connection = await pool.promise().getConnection();
     try {
-      const query = "SELECT * FROM accounts";
+      const query = "SELECT username FROM accounts";
       const [results] = await connection.query(query);
       return results;
     } finally {
@@ -15,7 +15,7 @@ const UserModel = {
   getUser: async (userid) => {
     const connection = await pool.promise().getConnection();
     try {
-      const query = "SELECT * FROM accounts where userid=?";
+      const query = "SELECT userid, usergroup FROM accounts where userid=?";
       const [results] = await connection.query(query, [userid]);
       return results;
     } finally {
@@ -25,7 +25,8 @@ const UserModel = {
   loginUser: async (username) => {
     const connection = await pool.promise().getConnection();
     try {
-      const query = "SELECT * FROM accounts where username=?";
+      const query =
+        "SELECT userid, userpassword FROM accounts where username=?";
       const [results] = await connection.query(query, [username]);
       return results;
     } finally {
@@ -35,7 +36,7 @@ const UserModel = {
   updateUser: async (clauses, values) => {
     const connection = await pool.promise().getConnection();
     try {
-      const query = `update accounts set ${clauses} where userid=?`;
+      const query = `UPDATE accounts SET ${clauses} WHERE userid=?`;
       const [results] = await connection.query(query, values);
       return results;
     } finally {
@@ -68,6 +69,14 @@ const UserModel = {
   },
   checkGroupUser: async (userid, usergroup) => {
     const connection = await pool.promise().getConnection();
+    try {
+      const query =
+        "select usergroup from accounts where userid=? AND `group` LIKE CONCAT('%', ?, '%')";
+      const [results] = await connection.query(query, [userid, usergroup]);
+      return results;
+    } finally {
+      connection.release();
+    }
   },
 
   //CheckGroupUser comes here

@@ -6,7 +6,7 @@ const ErrorHandler = require("../utils/errorHandler");
 // Logout User => /api/v1/logout
 
 // Check if the user is authenticated or not this will pull out req.user with the relevant id from login users
-exports.isLoggedIn = catchAsyncError(async (req, res, next) => {
+exports.isAuthenticateUser = catchAsyncError(async (req, res, next) => {
   let token;
   if (
     req.headers.authorization &&
@@ -20,18 +20,20 @@ exports.isLoggedIn = catchAsyncError(async (req, res, next) => {
   }
   //extracting the req.user.id from login token
   const decoded = jwt.verify(token, process.env.JWT_SECRET);
-  req.user = await User.getUser(decoded.id);
+  const [reqUser] = await User.getUser(decoded.id);
+  req.userid = reqUser.userid;
+  req.usergroup = reqUser.usergroup;
   next();
 });
 
 exports.checkGroup = (...roles) => {
-  return (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
+  return async (req, res, next) => {
+    const usergroups = req.usergroup.trim().replace(" ", "").split(",");
+
+    const roleMatched = roles.some((role) => usergroups.includes(role));
+    if (!roleMatched) {
       return next(
-        new ErrorHandler(
-          `Role(${req.user.role}) is not allowed to access this resource.`,
-          403
-        )
+        new ErrorHandler("You are not authorized to use this resource", 403)
       );
     }
     next();

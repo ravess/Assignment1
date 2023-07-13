@@ -8,12 +8,15 @@ const {
   updateUser,
   createUser,
 } = require("../controllers/userController");
-const { isLoggedIn } = require("../controllers/authController");
+const {
+  isAuthenticateUser,
+  checkGroup,
+} = require("../controllers/authController");
 
 // User Login Routes
-router.route("/").get(getAllUsers);
+router.route("/").get(isAuthenticateUser, checkGroup, getAllUsers);
 router.route("/login").post(loginUser);
-router.route("/user/:userid").put(isLoggedIn, updateUser);
+router.route("/user/:userid").put(isAuthenticateUser, updateUser);
 router.route("/user/register").post(createUser);
 
 module.exports = router;
