@@ -44,9 +44,10 @@ exports.createUser = catchAsyncError(async (req, res, next) => {
 
 exports.updateUser = catchAsyncError(async (req, res, next) => {
   // Validate if updated password modified meets specs
-  console.log(typeof req.params.userid);
+
   if (req.body.userpassword) {
-    validationFn.validatePassword(req.body.userpassword);
+    await validationFn.validatePassword(req.body.userpassword);
+    req.body.userpassword = await bcrypt.hash(req.body.userpassword, 10);
   }
 
   let clauses = [];

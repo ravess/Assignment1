@@ -25,7 +25,7 @@ const AdminModel = {
   updateUser: async (clauses, values) => {
     const connection = await pool.promise().getConnection();
     try {
-      const query = 'UPDATE user SET' + clauses + 'WHERE userid=?';
+      const query = 'UPDATE user SET ' + clauses + ' WHERE userid=?';
       const [results] = await connection.query(query, values);
       return results;
     } finally {
@@ -42,8 +42,7 @@ const AdminModel = {
     const connection = await pool.promise().getConnection();
 
     try {
-      const query =
-        'insert into user(username,userpassword,useremail,usergroup,userisActive) values(?,?,?,?,?)';
+      const query = `insert into user(username,userpassword,useremail,usergroup,userisActive) values(?,?,?,?,?)`;
       const [results] = await connection.query(query, [
         username,
         hashedpassword,

@@ -1,9 +1,9 @@
-const jwt = require("jsonwebtoken");
-const Auth = require("../models/authModel");
-const catchAsyncError = require("../middlewares/catchAsyncError");
-const ErrorHandler = require("../utils/errorHandler");
-const bcrypt = require("bcryptjs");
-const sendToken = require("../utils/jwtToken");
+const jwt = require('jsonwebtoken');
+const Auth = require('../models/authModel');
+const catchAsyncError = require('../middlewares/catchAsyncError');
+const ErrorHandler = require('../utils/errorHandler');
+const bcrypt = require('bcryptjs');
+const sendToken = require('../utils/jwtToken');
 
 // Logout User => /api/v1/logout
 
@@ -12,13 +12,13 @@ exports.isUserLoggedIn = catchAsyncError(async (req, res, next) => {
   let token;
   if (
     req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer")
+    req.headers.authorization.startsWith('Bearer')
   ) {
-    token = req.headers.authorization.split(" ")[1];
+    token = req.headers.authorization.split(' ')[1];
   }
   // This handles for ensuring user is login to extract the id from token
   if (!token) {
-    return next(new ErrorHandler("Login first to access this resource", 401));
+    return next(new ErrorHandler('Login first to access this resource', 401));
   }
   //extracting the req.user.id from login token
   const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -30,14 +30,13 @@ exports.isUserLoggedIn = catchAsyncError(async (req, res, next) => {
 exports.checkGroup = (...roles) => {
   return async (req, res, next) => {
     const rolesFiltered =
-      "(" +
-      roles.map((role) => `usergroup LIKE '%${role}%'`).join(" OR ") +
-      ")";
+      '(' +
+      roles.map((role) => `usergroup LIKE '%${role}%'`).join(' OR ') +
+      ')';
     const user = await Auth.checkGroupUser(req.userid, rolesFiltered);
-    console.log(user[0]);
     if (!user[0]) {
       return next(
-        new ErrorHandler("You are not authorised to access this resource")
+        new ErrorHandler('You are not authorised to access this resource', 403)
       );
     }
     next();
@@ -56,10 +55,10 @@ exports.loginUser = catchAsyncError(async (req, res, next) => {
 
   // Check if there is user in database, if not return Invalid Email or Password
   if (!user[0]) {
-    return next(new ErrorHandler("Invalid Email or Password", 401));
+    return next(new ErrorHandler('Invalid Email or Password', 401));
   }
   if (!user[0].userisActive) {
-    return next(new ErrorHandler("User is disabled", 403));
+    return next(new ErrorHandler('User is disabled', 403));
   }
 
   // Check if password is correct if not also return Invalid Email or Password
@@ -83,12 +82,12 @@ exports.logout = catchAsyncError(async (req, res, next) => {
 
   // Remove the user's active session from the tracking
   delete activeSessions[userid];
-  res.cookie("token", "none", {
+  res.cookie('token', 'none', {
     expires: new Date(Date.now()),
     httpOnly: true,
   });
   res.status(200).json({
     success: true,
-    message: "Logged out successfully.",
+    message: 'Logged out successfully.',
   });
 });
