@@ -1,11 +1,12 @@
-const dbConn = require("../config/databaseConfig");
+const dbConn = require('../config/databaseConfig');
 const pool = dbConn.createConnPool();
 
 const AuthModel = {
   loginUser: async (username) => {
     const connection = await pool.promise().getConnection();
     try {
-      const query = `SELECT userid, userpassword, userisActive FROM user where username=?`;
+      const query =
+        'SELECT userid, userpassword, userisActive FROM user where username=?';
       const [results] = await connection.query(query, [username]);
       return results;
     } finally {
@@ -15,10 +16,7 @@ const AuthModel = {
   checkGroupUser: async (userid, usergroup) => {
     const connection = await pool.promise().getConnection();
     try {
-      const query =
-        // "SELECT username FROM user WHERE userid=? AND FIND_IN_SET(usergroup, ?)";
-        `SELECT username FROM user WHERE userid=? AND ${usergroup}`;
-      // "SELECT username FROM user WHERE userid=? AND CONCAT(',', usergroup, ',') LIKE CONCAT('%,', ?, ',%')";
+      const query = `SELECT username FROM user WHERE userid=? AND ${usergroup}`;
       const [results] = await connection.query(query, [userid]);
       return results;
     } finally {
@@ -28,7 +26,7 @@ const AuthModel = {
   getUser: async (userid) => {
     const connection = await pool.promise().getConnection();
     try {
-      const query = "SELECT userid FROM user where userid=?";
+      const query = 'SELECT userid FROM user where userid=?';
       const [results] = await connection.query(query, [userid]);
       return results;
     } finally {

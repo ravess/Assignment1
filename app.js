@@ -1,17 +1,17 @@
-const express = require("express");
-const session = require("express-session");
-const dotenv = require("dotenv");
+const express = require('express');
+const session = require('express-session');
+const dotenv = require('dotenv');
 
 const app = express();
 const port = 3000;
 
-const errorMiddleware = require("./middlewares/errors");
-const ErrorHandler = require("./utils/errorHandler");
+const errorMiddleware = require('./middlewares/errors');
+const ErrorHandler = require('./utils/errorHandler');
 // Setting up config.env files variables **config files has to be loaded before routes and database connection made
-dotenv.config({ path: "./.env" });
+dotenv.config({ path: './.env' });
 
 // Handling Uncaught Exception before database, has to be near the top here.
-process.on("uncaughtException", (err) => {
+process.on('uncaughtException', (err) => {
   console.log(`ERROR: ${err.stack}`);
   console.log(`Shutting down due to uncaught exception`);
   process.exit(1);
@@ -28,15 +28,15 @@ app.use(
   })
 ); // Session setup
 
-const user = require("./routes/userRoute");
-const admin = require("./routes/adminRoute");
-const auth = require("./routes/authRoute");
-app.use("/api/v1", user);
-app.use("/api/v1", admin);
-app.use("/api/v1", auth);
+const auth = require('./routes/authRoute');
+const admin = require('./routes/adminRoute');
+const user = require('./routes/userRoute');
+app.use('/api/v1', auth);
+app.use('/api/v1', admin);
+app.use('/api/v1', user);
 
 // Handled unhandled routes (make sure is below the routes)
-app.all("*", (req, res, next) => {
+app.all('*', (req, res, next) => {
   next(new ErrorHandler(`${req.originalUrl} route not found`, 404));
 });
 
@@ -49,7 +49,7 @@ app.listen(port, () => {
 });
 
 // Handling unhandled Promise Rejection
-process.on("unhandledRejection", (err) => {
+process.on('unhandledRejection', (err) => {
   console.log(`Error: ${err.stack}`);
   console.log(`Shutting down the server due to unhandled promise rejection.`);
   server.close(() => {
