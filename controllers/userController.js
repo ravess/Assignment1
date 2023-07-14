@@ -1,52 +1,23 @@
 const User = require("../models/userModel");
 const catchAsyncError = require("../middlewares/catchAsyncError");
 const ErrorHandler = require("../utils/errorHandler");
-const sendToken = require("../utils/jwtToken");
-const bcrypt = require("bcryptjs");
+const validationFn = require("../utils/validation");
 
-// GET ALL USERS
-exports.getAllUsers = catchAsyncError(async (req, res, next) => {
-  const users = await User.getAllUsers();
+exports.getProfile = catchAsyncError(async (req, res, next) => {
+  const { userid } = req.body;
+  const user = await User.getProfile(userid);
 
-  if (!users || users.length === 0) {
-    return next(new ErrorHandler("Unable to find any users", 404));
-  }
   res.status(200).json({
     success: true,
-    results: users.length,
-    data: users,
+    message: "Here is the profile",
+    data: user,
   });
 });
 
-exports.loginUser = catchAsyncError(async (req, res, next) => {
-  const { username, userpassword } = req.body;
-  // No email or password handler before submitting to the model layer
-  if (!username || !userpassword) {
-    return next(new ErrorHandler(`Please enter username and Password`, 400));
-  }
-
-  //
-  const user = await User.loginUser(username);
-
-  // Check if there is user in database, if not return Invalid Email or Password
-  if (!user[0]) {
-    return next(new ErrorHandler("Invalid Email or Password", 401));
-  }
-
-  // Check if password is correct if not also return Invalid Email or Password
-  const hashedPasswordFromDB = user[0].userpassword;
-  const isPasswordMatched = await bcrypt.compare(
-    userpassword,
-    hashedPasswordFromDB
-  );
-  if (!isPasswordMatched) {
-    return next(new ErrorHandler(`Invalid Email or Password`, 401));
-  }
-  req.session.userid = user[0].userid;
-  sendToken(user, 200, res);
-});
-
 exports.updateUser = catchAsyncError(async (req, res, next) => {
+  // Validate if updated password modified meets specs
+  validationFn.validatePassword(req.body.userpassword);
+
   let clauses = [];
   let values = [];
   for (const property in req.body) {
@@ -77,47 +48,71 @@ exports.updateUser = catchAsyncError(async (req, res, next) => {
 });
 
 // For Roy to work on usergroup logic here.**************
-exports.createUser = catchAsyncError(async (req, res, next) => {
-  for (const property in req.body) {
-    if (req.body[property] === "") {
-      return next(new ErrorHandler("Please do not leave any field blanks."));
-    }
-  }
-  // Need to amend some logic here before sending into mysql statement
-  const { username, useremail, userpassword, usergroup, userisActive } =
-    req.body;
+// exports.createUser = catchAsyncError(async (req, res, next) => {
+//   // Validation Checks
+//   validationFn.validateEmptyFields(req.body);
+//   // Pass in the userpassword to validate if it meets the specs
+//   validationFn.validatePassword(req.body.userpassword);
+//   // Need to amend some logic here before sending into mysql statement
+//   const { username, useremail, userpassword, usergroup, userisActive } =
+//     req.body;
 
-  const rePassword = new RegExp(
-    "^(?=.*[a-zA-Z0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,10}$"
-  );
+//   const results = await User.createUser(
+//     username,
+//     hashedpassword,
+//     useremail,
+//     usergroup,
+//     userisActive
+//   );
 
-  if (!rePassword.test(userpassword)) {
-    return next(
-      new ErrorHandler(
-        "You are require to set the pw which have min 8 chars & max 10 chars which is alphanumeric and a special char",
-        400
-      )
-    );
-  }
+//   res.status(200).json({
+//     success: true,
+//     message: "User is created",
+//     data: `${results.affectedRows} row(s) is inserted`,
+//   });
+// });
 
-  // Need come back check if User exist, maybe through validation middleware?
-  // const existingUser = await User.getUserByUsernameOrEmail(username, useremail);
-  // if (existingUser) {
-  //   return next(new ErrorHandler('Username or email already exists', 409));
-  // }
+// ADMIN GET ALL USERS
+// exports.getAllUsers = catchAsyncError(async (req, res, next) => {
+//   const users = await User.getAllUsers();
 
-  const hashedpassword = await bcrypt.hash(userpassword, 15);
-  const results = await User.createUser(
-    username,
-    hashedpassword,
-    useremail,
-    usergroup,
-    userisActive
-  );
+//   if (!users || users.length === 0) {
+//     return next(new ErrorHandler("Unable to find any users", 404));
+//   }
+//   res.status(200).json({
+//     success: true,
+//     results: users.length,
+//     data: users,
+//   });
+// });
 
-  res.status(200).json({
-    success: true,
-    message: "User is created",
-    data: `${results.affectedRows} row(s) is inserted`,
-  });
-});
+// exports.loginUser = catchAsyncError(async (req, res, next) => {
+//   const { username, userpassword } = req.body;
+//   // No email or password handler before submitting to the model layer
+//   if (!username || !userpassword) {
+//     return next(new ErrorHandler(`Please enter username and Password`, 400));
+//   }
+
+//   // Sending to my model layer to start DB querying
+//   const user = await User.loginUser(username);
+
+//   // Check if there is user in database, if not return Invalid Email or Password
+//   if (!user[0]) {
+//     return next(new ErrorHandler("Invalid Email or Password", 401));
+//   }
+//   if (!user[0].userisActive) {
+//     return next(new ErrorHandler("User is disabled", 403));
+//   }
+
+//   // Check if password is correct if not also return Invalid Email or Password
+//   const hashedPasswordFromDB = user[0].userpassword;
+//   const isPasswordMatched = await bcrypt.compare(
+//     userpassword,
+//     hashedPasswordFromDB
+//   );
+//   if (!isPasswordMatched) {
+//     return next(new ErrorHandler(`Invalid Email or Password`, 401));
+//   }
+//   req.session.userid = user[0].userid;
+//   sendToken(user, 200, res);
+// });

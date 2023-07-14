@@ -6,7 +6,7 @@ const ErrorHandler = require("../utils/errorHandler");
 // Logout User => /api/v1/logout
 
 // Check if the user is authenticated or not this will pull out req.user with the relevant id from login users
-exports.isAuthenticateUser = catchAsyncError(async (req, res, next) => {
+exports.isUserLoggedIn = catchAsyncError(async (req, res, next) => {
   let token;
   if (
     req.headers.authorization &&
@@ -22,23 +22,56 @@ exports.isAuthenticateUser = catchAsyncError(async (req, res, next) => {
   const decoded = jwt.verify(token, process.env.JWT_SECRET);
   const [reqUser] = await User.getUser(decoded.id);
   req.userid = reqUser.userid;
-  req.usergroup = reqUser.usergroup;
   next();
 });
 
 exports.checkGroup = (...roles) => {
   return async (req, res, next) => {
-    const usergroups = req.usergroup.trim().replace(" ", "").split(",");
-
-    const roleMatched = roles.some((role) => usergroups.includes(role));
-    if (!roleMatched) {
+    const rolesFiltered =
+      "(" +
+      roles.map((role) => `usergroup LIKE '%${role}%'`).join(" OR ") +
+      ")";
+    const user = await User.checkGroupUser(req.userid, rolesFiltered);
+    console.log(user[0]);
+    if (!user[0]) {
       return next(
-        new ErrorHandler("You are not authorized to use this resource", 403)
+        new ErrorHandler("You are not authorised to access this resource")
       );
     }
     next();
   };
 };
+
+exports.loginUser = catchAsyncError(async (req, res, next) => {
+  const { username, userpassword } = req.body;
+  // No email or password handler before submitting to the model layer
+  if (!username || !userpassword) {
+    return next(new ErrorHandler(`Please enter username and Password`, 400));
+  }
+
+  // Sending to my model layer to start DB querying
+  const user = await User.loginUser(username);
+
+  // Check if there is user in database, if not return Invalid Email or Password
+  if (!user[0]) {
+    return next(new ErrorHandler("Invalid Email or Password", 401));
+  }
+  if (!user[0].userisActive) {
+    return next(new ErrorHandler("User is disabled", 403));
+  }
+
+  // Check if password is correct if not also return Invalid Email or Password
+  const hashedPasswordFromDB = user[0].userpassword;
+  const isPasswordMatched = await bcrypt.compare(
+    userpassword,
+    hashedPasswordFromDB
+  );
+  if (!isPasswordMatched) {
+    return next(new ErrorHandler(`Invalid Email or Password`, 401));
+  }
+  req.session.userid = user[0].userid;
+  sendToken(user, 200, res);
+});
 
 exports.logout = catchAsyncError(async (req, res, next) => {
   const { userid } = req.session;
