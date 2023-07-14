@@ -25,17 +25,6 @@ const AuthModel = {
       connection.release();
     }
   },
-
-  //CheckGroupUser comes here
-
-  // handling users roles the ...roles when passed in with ('employer', 'admin') it
-  // it collects in an array ['employer', 'admin']
-
-  /*
-SELECT col_a
-FROM table_a
-WHERE col_b = 'userid' AND table_b LIKE '%admin%'
-*/
 };
 
 module.exports = AuthModel;

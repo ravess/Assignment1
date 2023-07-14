@@ -1,10 +1,7 @@
-const User = require("../models/userModel");
 const Admin = require("../models/adminModel");
 const catchAsyncError = require("../middlewares/catchAsyncError");
 const ErrorHandler = require("../utils/errorHandler");
-const sendToken = require("../utils/jwtToken");
 const validationFn = require("../utils/validation");
-const bcrypt = require("bcryptjs");
 
 // GET ALL USERS
 exports.getAllUsers = catchAsyncError(async (req, res, next) => {
