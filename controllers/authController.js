@@ -1,7 +1,9 @@
 const jwt = require("jsonwebtoken");
-const User = require("../models/userModel");
+const Auth = require("../models/authModel");
 const catchAsyncError = require("../middlewares/catchAsyncError");
 const ErrorHandler = require("../utils/errorHandler");
+const bcrypt = require("bcryptjs");
+const sendToken = require("../utils/jwtToken");
 
 // Logout User => /api/v1/logout
 
@@ -20,7 +22,7 @@ exports.isUserLoggedIn = catchAsyncError(async (req, res, next) => {
   }
   //extracting the req.user.id from login token
   const decoded = jwt.verify(token, process.env.JWT_SECRET);
-  const [reqUser] = await User.getUser(decoded.id);
+  const [reqUser] = await Auth.getUser(decoded.id);
   req.userid = reqUser.userid;
   next();
 });
@@ -31,7 +33,7 @@ exports.checkGroup = (...roles) => {
       "(" +
       roles.map((role) => `usergroup LIKE '%${role}%'`).join(" OR ") +
       ")";
-    const user = await User.checkGroupUser(req.userid, rolesFiltered);
+    const user = await Auth.checkGroupUser(req.userid, rolesFiltered);
     console.log(user[0]);
     if (!user[0]) {
       return next(
@@ -50,7 +52,7 @@ exports.loginUser = catchAsyncError(async (req, res, next) => {
   }
 
   // Sending to my model layer to start DB querying
-  const user = await User.loginUser(username);
+  const user = await Auth.loginUser(username);
 
   // Check if there is user in database, if not return Invalid Email or Password
   if (!user[0]) {

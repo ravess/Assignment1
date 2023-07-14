@@ -1,17 +1,4 @@
-// Single connection
-// const dbConnect = {
-//   getConnection: function () {
-//     const conn = mysql.createConnection({
-//       host: process.env.DB_LOCAL_URI,
-//       user: process.env.DB_USER,
-//       password: process.env.DB_PASS,
-//       database: process.env.DB_NAME,
-//     });
-//     return conn;
-//   },
-// };
-
-const mysql = require('mysql2');
+const mysql = require("mysql2");
 
 // Connection Pool would be advantageous due to optimizing of resources
 const dbConnect = {
@@ -28,3 +15,16 @@ const dbConnect = {
 };
 
 module.exports = dbConnect;
+
+// Single connection
+// const dbConnect = {
+//   getConnection: function () {
+//     const conn = mysql.createConnection({
+//       host: process.env.DB_LOCAL_URI,
+//       user: process.env.DB_USER,
+//       password: process.env.DB_PASS,
+//       database: process.env.DB_NAME,
+//     });
+//     return conn;
+//   },
+// };

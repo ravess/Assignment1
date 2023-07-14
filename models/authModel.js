@@ -25,6 +25,16 @@ const AuthModel = {
       connection.release();
     }
   },
+  getUser: async (userid) => {
+    const connection = await pool.promise().getConnection();
+    try {
+      const query = "SELECT userid FROM user where userid=?";
+      const [results] = await connection.query(query, [userid]);
+      return results;
+    } finally {
+      connection.release();
+    }
+  },
 };
 
 module.exports = AuthModel;

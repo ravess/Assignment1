@@ -1,4 +1,4 @@
-const bcrypt = require("bcryptjs");
+// const bcrypt = require("bcryptjs");
 const ErrorHandler = require("./errorHandler");
 const validationFn = {
   validatePassword: (userpassword) => {
