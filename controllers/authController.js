@@ -4,6 +4,7 @@ const catchAsyncError = require('../middlewares/catchAsyncError');
 const ErrorHandler = require('../utils/errorHandler');
 const bcrypt = require('bcryptjs');
 const sendToken = require('../utils/jwtToken');
+// const { v4: uuidv4 } = require('uuid');
 
 // Logout User => /api/v1/logout
 
@@ -31,9 +32,7 @@ exports.isUserLoggedIn = catchAsyncError(async (req, res, next) => {
       )
     );
   }
-  // Store the user ID in the request object for further processing
   req.userid = userID;
-
   next();
 });
 
@@ -81,23 +80,11 @@ exports.loginUser = catchAsyncError(async (req, res, next) => {
   if (!user[0].userisActive) {
     return next(new ErrorHandler('User is disabled', 403));
   }
-  // Generate a unique session identifier
-  const sessionID = uuidv4();
-  // Store the session identifier in the user's session object
-  req.session.sessionID = sessionID;
-  req.activeSessions[sessionID] = user[0].userid;
 
   sendToken(user, 200, res);
 });
 
 exports.logout = catchAsyncError(async (req, res, next) => {
-  const { sessionID } = req.session;
-
-  // Remove the user's session identifier from the activeSessions tracking object
-  delete req.activeSessions[sessionID];
-
-  // Clear the session for the user
-  req.session.destroy();
   res.cookie('token', 'none', {
     expires: new Date(Date.now()),
     httpOnly: true,
