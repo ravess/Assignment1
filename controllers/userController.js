@@ -4,8 +4,8 @@ const ErrorHandler = require('../utils/errorHandler');
 const validationFn = require('../utils/validation');
 
 exports.getProfile = catchAsyncError(async (req, res, next) => {
-  const { userid } = req.body;
-  const user = await User.getProfile(userid);
+  const user = await User.getProfile(req.userid);
+  console.log(user);
 
   res.status(200).json({
     success: true,

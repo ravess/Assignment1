@@ -1,4 +1,4 @@
-const jwt = require("jsonwebtoken");
+const jwt = require('jsonwebtoken');
 // Create and send token and save in cookie
 const sendToken = (user, statusCode, res) => {
   // Create JWT Token
@@ -12,9 +12,10 @@ const sendToken = (user, statusCode, res) => {
     ),
     httpOnly: true,
   };
+  console.log(token, `from sendToken`);
   res
     .status(statusCode)
-    .cookie("token", token, options)
+    .cookie('token', token, options)
     .json({ success: true, token });
 };
 

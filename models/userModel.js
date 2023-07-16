@@ -1,11 +1,11 @@
-const dbConn = require("../config/databaseConfig");
+const dbConn = require('../config/databaseConfig');
 const pool = dbConn.createConnPool();
 
 const UserModel = {
   getProfile: async (userid) => {
     const connection = await pool.promise().getConnection();
     try {
-      const query = "SELECT userid FROM user where userid=?";
+      const query = 'SELECT usergroup, username FROM user where userid=?';
       const [results] = await connection.query(query, [userid]);
       return results;
     } finally {

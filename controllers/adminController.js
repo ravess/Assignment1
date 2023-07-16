@@ -34,7 +34,6 @@ exports.createUser = catchAsyncError(async (req, res, next) => {
     usergroup,
     userisActive
   );
-
   res.status(200).json({
     success: true,
     message: 'User is created',

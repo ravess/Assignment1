@@ -10,28 +10,15 @@ const sendToken = require('../utils/jwtToken');
 
 // Check if the user is authenticated or not this will pull out req.user with the relevant id from login users
 exports.isUserLoggedIn = catchAsyncError(async (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1];
+  const token = req.cookies.token;
   // This handles for ensuring user is login to extract the id from token
   if (!token) {
+    console.log(`no token`);
     return next(new ErrorHandler('Login first to access this resource', 401));
   }
   //extracting the req.user.id from login token
   const decoded = jwt.verify(token, process.env.JWT_SECRET);
   const userID = decoded.id;
-
-  // Check if the session identifier exists in the activeSessions tracking object
-  if (
-    !req.session ||
-    !req.session.sessionID ||
-    req.activeSessions[req.session.sessionID] !== userID
-  ) {
-    return next(
-      new ErrorHandler(
-        'Invalid session. Login again to access this resource',
-        401
-      )
-    );
-  }
   req.userid = userID;
   next();
 });
@@ -42,8 +29,10 @@ exports.checkGroup = (...roles) => {
     '(' + roles.map((role) => `usergroup LIKE '%${role}%'`).join(' OR ') + ')';
   // The below will replace my checkgroup() function and makes it a middleware function which has
   return catchAsyncError(async (req, res, next) => {
+    // console.log(`it came to checkgroup`);
     const user = await Auth.checkGroupUser(req.userid, rolesFiltered);
     if (!user[0]) {
+      console.log(`there wasnt any user`);
       return next(
         new ErrorHandler('You are not authorised to access this resource', 403)
       );
