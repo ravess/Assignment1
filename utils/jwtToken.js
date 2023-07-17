@@ -12,6 +12,9 @@ const sendToken = (user, statusCode, res) => {
     ),
     httpOnly: true,
     secure: true,
+    sameSite: "none",
+    domain: "localhost",
+    path: "/",
   };
   console.log(token, `from sendToken`);
   res

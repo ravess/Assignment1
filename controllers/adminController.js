@@ -1,14 +1,14 @@
-const Admin = require('../models/adminModel');
-const catchAsyncError = require('../middlewares/catchAsyncError');
-const ErrorHandler = require('../utils/errorHandler');
-const validationFn = require('../utils/validation');
-const bcrypt = require('bcryptjs');
+const Admin = require("../models/adminModel");
+const catchAsyncError = require("../middlewares/catchAsyncError");
+const ErrorHandler = require("../utils/errorHandler");
+const validationFn = require("../utils/validation");
+const bcrypt = require("bcryptjs");
 
 // GET ALL USERS
 exports.getAllUsers = catchAsyncError(async (req, res, next) => {
   const users = await Admin.getAllUsers();
   if (!users || users.length === 0) {
-    return next(new ErrorHandler('Unable to find any users', 404));
+    return next(new ErrorHandler("Unable to find any users", 404));
   }
   res.status(200).json({
     success: true,
@@ -36,7 +36,7 @@ exports.createUser = catchAsyncError(async (req, res, next) => {
   );
   res.status(200).json({
     success: true,
-    message: 'User is created',
+    message: "User is created",
     data: `${results.affectedRows} row(s) is inserted`,
   });
 });
@@ -52,28 +52,28 @@ exports.updateUser = catchAsyncError(async (req, res, next) => {
   let clauses = [];
   let values = [];
   for (const property in req.body) {
-    if (property === 'userid') {
+    if (property === "userid") {
       res.status(400).json({
         success: false,
-        meesage: 'Not Allowed to change.',
+        meesage: "Not Allowed to change.",
       });
     }
-    clauses.push(property + '=?');
+    clauses.push(property + "=?");
     values.push(req.body[property]);
   }
   if (values) {
     values.push(req.params.userid);
   }
   // The above code is to allow me to dynamicly accept any json values
-  clauses = clauses.join(',');
+  clauses = clauses.join(",");
   const results = await Admin.updateUser(clauses, values);
 
   if (!results) {
-    return next(new ErrorHandler('User not found', 404));
+    return next(new ErrorHandler("User not found", 404));
   }
   res.status(200).json({
     success: true,
-    message: 'User is updated',
+    message: "User is updated",
     data: `${results.affectedRows} row(s) is updated`,
   });
 });

@@ -8,6 +8,6 @@ const {
 } = require("../controllers/authController");
 
 router.route("/login").post(loginUser);
-router.route("/logout").post(isUserLoggedIn, logout);
+router.route("/logout").get(isUserLoggedIn, logout);
 
 module.exports = router;
