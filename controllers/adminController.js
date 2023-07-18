@@ -44,13 +44,17 @@ exports.getGroups = catchAsyncError(async (req, res, next) => {
 });
 
 exports.createUser = catchAsyncError(async (req, res, next) => {
-  // Validation Checks
-  validationFn.validateEmptyFields(req.body);
-  // Pass in the userpassword to validate if it meets the specs
+  validationFn.deleteEmptyFields(req.body);
   validationFn.validatePassword(req.body.userpassword);
   // Need to amend some logic here before sending into mysql statement
   const { username, useremail, userpassword, usergroup, userisActive } =
     req.body;
+
+  if (!username || !userpassword || userisActive === null) {
+    return next(
+      new ErrorHandler(`Username,userpassword and userisActive is required`)
+    );
+  }
   const hashedpassword = await bcrypt.hash(userpassword, 15);
 
   const results = await Admin.createUser(
