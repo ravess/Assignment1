@@ -1,4 +1,4 @@
-const dbConn = require('../config/databaseConfig');
+const dbConn = require("../config/databaseConfig");
 const pool = dbConn.createConnPool();
 
 const AdminModel = {
@@ -6,7 +6,7 @@ const AdminModel = {
     const connection = await pool.promise().getConnection();
     try {
       const query =
-        'SELECT username, userid, useremail, userisActive, usergroup FROM user';
+        "SELECT username, userid, useremail, userisActive, usergroup FROM user";
       const [results] = await connection.query(query);
       return results;
     } finally {
@@ -17,7 +17,7 @@ const AdminModel = {
     const connection = await pool.promise().getConnection();
     try {
       const query =
-        'SELECT username,useremail,usergroup,userisActive FROM user where userid=?';
+        "SELECT username,useremail,usergroup,userisActive FROM user where userid=?";
       const [results] = await connection.query(query, [userid]);
       return results;
     } finally {
@@ -27,7 +27,7 @@ const AdminModel = {
   updateUser: async (clauses, values) => {
     const connection = await pool.promise().getConnection();
     try {
-      const query = 'UPDATE user SET ' + clauses + ' WHERE userid=?';
+      const query = "UPDATE user SET " + clauses + " WHERE userid=?";
       const [results] = await connection.query(query, values);
       return results;
     } finally {
@@ -60,7 +60,7 @@ const AdminModel = {
   getGroups: async () => {
     const connection = await pool.promise().getConnection();
     try {
-      const query = 'SELECT * FROM nodelogin.groups';
+      const query = "SELECT * FROM nodelogin.groups";
       const [results] = await connection.query(query);
       return results;
     } finally {
