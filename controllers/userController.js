@@ -2,10 +2,10 @@ const User = require("../models/userModel");
 const catchAsyncError = require("../middlewares/catchAsyncError");
 const ErrorHandler = require("../utils/errorHandler");
 const validationFn = require("../utils/validation");
+const bcrypt = require("bcryptjs");
 
 exports.getProfile = catchAsyncError(async (req, res, next) => {
   const user = await User.getProfile(req.userid);
-  console.log(user);
 
   res.status(200).json({
     success: true,
@@ -16,8 +16,11 @@ exports.getProfile = catchAsyncError(async (req, res, next) => {
 
 exports.updateUser = catchAsyncError(async (req, res, next) => {
   // Validate if updated password modified meets specs
-  validationFn.validatePassword(req.body.userpassword);
-
+  validationFn.deleteEmptyFields(req.body);
+  if (req.body.userpassword) {
+    await validationFn.validatePassword(req.body.userpassword);
+    req.body.userpassword = await bcrypt.hash(req.body.userpassword, 10);
+  }
   let clauses = [];
   let values = [];
   for (const property in req.body) {
@@ -36,7 +39,7 @@ exports.updateUser = catchAsyncError(async (req, res, next) => {
     values.push(req.body[property]);
   }
   if (values) {
-    values.push(req.params.userid);
+    values.push(req.userid);
   }
   // The above code is to allow me to dynamicly accept any json values
   clauses = clauses.join(",");
