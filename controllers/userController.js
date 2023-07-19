@@ -1,53 +1,61 @@
-const User = require("../models/userModel");
-const catchAsyncError = require("../middlewares/catchAsyncError");
-const ErrorHandler = require("../utils/errorHandler");
-const validationFn = require("../utils/validation");
+const User = require('../models/userModel');
+const catchAsyncError = require('../middlewares/catchAsyncError');
+const ErrorHandler = require('../utils/errorHandler');
+const validationFn = require('../utils/validation');
+const bcrypt = require('bcryptjs');
 
 exports.getProfile = catchAsyncError(async (req, res, next) => {
   const user = await User.getProfile(req.userid);
-  console.log(user);
+  if (!user) {
+    return next(new ErrorHandler('User not found', 404));
+  }
 
   res.status(200).json({
     success: true,
-    message: "Here is the profile",
+    message: 'Here is the profile',
     data: user,
   });
 });
 
 exports.updateUser = catchAsyncError(async (req, res, next) => {
   // Validate if updated password modified meets specs
-  validationFn.validatePassword(req.body.userpassword);
-
+  validationFn.deleteEmptyFields(req.body);
+  if (req.body.userpassword) {
+    await validationFn.validatePassword(req.body.userpassword);
+    console.log(`it came in password validation`);
+    req.body.userpassword = await bcrypt.hash(req.body.userpassword, 10);
+  }
+  console.log(`it came through`);
   let clauses = [];
   let values = [];
   for (const property in req.body) {
     if (
-      property === "userid" ||
-      property === "usergroup" ||
-      property === "userisActive" ||
-      property === "username"
+      property === 'userid' ||
+      property === 'usergroup' ||
+      property === 'userisActive' ||
+      property === 'username'
     ) {
       res.status(400).json({
         success: false,
-        meesage: "Not Allowed to change.",
+        meesage: 'Not Allowed to change.',
       });
     }
-    clauses.push(property + "=?");
+    clauses.push(property + '=?');
     values.push(req.body[property]);
   }
   if (values) {
-    values.push(req.params.userid);
+    values.push(req.userid);
   }
   // The above code is to allow me to dynamicly accept any json values
-  clauses = clauses.join(",");
-  const results = await User.updateUser(clauses, values);
+  clauses = clauses.join(',');
 
+  const results = await User.updateUser(clauses, values);
   if (!results) {
-    return next(new ErrorHandler("User not found", 404));
+    return next(new ErrorHandler('User not found', 404));
   }
   res.status(200).json({
     success: true,
-    message: "User is updated",
+    message: 'User is updated',
     data: `${results.affectedRows} row(s) is updated`,
   });
 });
