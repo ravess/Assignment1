@@ -77,7 +77,7 @@ exports.createUser = catchAsyncError(async (req, res, next) => {
 
 exports.updateUser = catchAsyncError(async (req, res, next) => {
   // Validate if updated password modified meets specs
-
+  validationFn.deleteEmptyFields(req.body);
   if (req.body.userpassword) {
     await validationFn.validatePassword(req.body.userpassword);
     req.body.userpassword = await bcrypt.hash(req.body.userpassword, 10);

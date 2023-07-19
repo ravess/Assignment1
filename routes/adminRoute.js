@@ -21,6 +21,8 @@ router
 router
   .route("/admin/users/create")
   .post(isUserLoggedIn, checkGroup("admin"), createUser);
-router.route("/admin/users/:userid/edit").put(isUserLoggedIn, updateUser);
+router
+  .route("/admin/users/:userid/edit")
+  .put(isUserLoggedIn, checkGroup("admin"), updateUser);
 
 module.exports = router;
