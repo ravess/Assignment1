@@ -9,20 +9,10 @@ const {
   getGroups,
 } = require("../controllers/adminController");
 
-router
-  .route("/admin/users")
-  .get(isUserLoggedIn, checkGroup("admin"), getAllUsers);
-router
-  .route("/admin/groups")
-  .get(isUserLoggedIn, checkGroup("admin"), getGroups);
-router
-  .route("/admin/user/:userid")
-  .get(isUserLoggedIn, checkGroup("admin"), getUser);
-router
-  .route("/admin/users/create")
-  .post(isUserLoggedIn, checkGroup("admin"), createUser);
-router
-  .route("/admin/users/:userid/edit")
-  .put(isUserLoggedIn, checkGroup("admin"), updateUser);
+router.route("/admin/users").get(isUserLoggedIn, getAllUsers);
+router.route("/admin/groups").get(isUserLoggedIn, getGroups);
+router.route("/admin/user/:userid").get(isUserLoggedIn, getUser);
+router.route("/admin/users/create").post(isUserLoggedIn, createUser);
+router.route("/admin/users/:userid/edit").put(isUserLoggedIn, updateUser);
 
 module.exports = router;
