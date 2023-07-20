@@ -36,15 +36,16 @@ exports.loginUser = catchAsyncError(async (req, res, next) => {
 });
 // Check if the user is authenticated or not this will pull out req.user with the relevant id from login users
 exports.isUserLoggedIn = catchAsyncError(async (req, res, next) => {
-  // const token = req.cookies.token;
-  let token;
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer")
-  ) {
-    token = req.headers.authorization.split(" ")[1];
-    console.log(token, `heres your token`);
-  }
+  const token = req.cookies.token;
+  console.log(token, `from cookie`);
+  // let token;
+  // if (
+  //   req.headers.authorization &&
+  //   req.headers.authorization.startsWith("Bearer")
+  // ) {
+  //   token = req.headers.authorization.split(" ")[1];
+  //   console.log(token, `heres your token`);
+  // }
 
   if (!token) {
     console.log(`no token`);
@@ -70,12 +71,15 @@ exports.logout = catchAsyncError(async (req, res, next) => {
   });
 });
 
-exports.checkGroup = catchAsyncError(async (req, res, next) => {
+exports.checkAdmin = catchAsyncError(async (req, res, next) => {
   const results = await checkGroup(req.userid, "admin");
   if (!results[0].RESULT) {
     return next(
       new ErrorHandler("You are not authorised to access this resource", 404)
     );
   }
-  next();
+  res.status(200).json({
+    success: true,
+    message: "Authorised check done",
+  });
 });
