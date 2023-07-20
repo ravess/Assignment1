@@ -52,7 +52,7 @@ exports.createUser = catchAsyncError(async (req, res, next) => {
   }
   validationFn.deleteEmptyFields(req.body);
   validationFn.validatePassword(req.body.userpassword);
-  // Need to amend some logic here before sending into mysql statement
+  // Need to amend some logic here before sending into mysql statement****
   const { username, useremail, userpassword, usergroup, userisActive } =
     req.body;
 

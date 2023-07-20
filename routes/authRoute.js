@@ -5,11 +5,11 @@ const {
   logout,
   isUserLoggedIn,
   loginUser,
-  checkGroup,
+  checkgroup,
 } = require('../controllers/authController');
-const { getAllUsers } = require('../controllers/adminController');
 
 router.route('/login').post(loginUser);
 router.route('/logout').get(isUserLoggedIn, logout);
+router.route('/checkgroup').get(isUserLoggedIn, checkgroup);
 
 module.exports = router;

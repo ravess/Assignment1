@@ -69,12 +69,16 @@ exports.logout = catchAsyncError(async (req, res, next) => {
   });
 });
 
-exports.checkGroup = catchAsyncError(async (req, res, next) => {
+exports.checkgroup = catchAsyncError(async (req, res, next) => {
   const results = await checkRole(req.userid, 'admin');
+  console.log(results[0].RESULT);
   if (!results[0].RESULT) {
     return next(
       new ErrorHandler('You are not authorised to access this resource', 404)
     );
   }
-  next();
+  res.status(200).json({
+    success: true,
+    message: 'You are authorised',
+  });
 });
