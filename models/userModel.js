@@ -5,7 +5,8 @@ const UserModel = {
   getProfile: async (userid) => {
     const connection = await pool.promise().getConnection();
     try {
-      const query = "SELECT usergroup, username FROM user where userid=?";
+      const query =
+        "SELECT usergroup, username, userisActive, useremail FROM user where userid=?";
       const [results] = await connection.query(query, [userid]);
       return results;
     } finally {

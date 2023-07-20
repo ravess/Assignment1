@@ -6,6 +6,9 @@ const bcrypt = require("bcryptjs");
 
 exports.getProfile = catchAsyncError(async (req, res, next) => {
   const user = await User.getProfile(req.userid);
+  if (!user) {
+    return next(new ErrorHandler("User not found", 404));
+  }
 
   res.status(200).json({
     success: true,
@@ -19,8 +22,10 @@ exports.updateUser = catchAsyncError(async (req, res, next) => {
   validationFn.deleteEmptyFields(req.body);
   if (req.body.userpassword) {
     await validationFn.validatePassword(req.body.userpassword);
+    console.log(`it came in password validation`);
     req.body.userpassword = await bcrypt.hash(req.body.userpassword, 10);
   }
+  console.log(`it came through`);
   let clauses = [];
   let values = [];
   for (const property in req.body) {
@@ -43,8 +48,8 @@ exports.updateUser = catchAsyncError(async (req, res, next) => {
   }
   // The above code is to allow me to dynamicly accept any json values
   clauses = clauses.join(",");
-  const results = await User.updateUser(clauses, values);
 
+  const results = await User.updateUser(clauses, values);
   if (!results) {
     return next(new ErrorHandler("User not found", 404));
   }
