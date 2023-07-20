@@ -42,7 +42,6 @@ const AdminModel = {
     userisActive
   ) => {
     const connection = await pool.promise().getConnection();
-
     try {
       const query = `insert into user(username,userpassword,useremail,usergroup,userisActive) values(?,?,?,?,?)`;
       const [results] = await connection.query(query, [
@@ -62,6 +61,17 @@ const AdminModel = {
     try {
       const query = "SELECT * FROM nodelogin.groups";
       const [results] = await connection.query(query);
+      return results;
+    } finally {
+      connection.release();
+    }
+  },
+  createGroup: async (usergroup) => {
+    const connection = await pool.promise().getConnection();
+    try {
+      console.log(usergroup);
+      const query = "insert into `groups`(groupname) values(?)";
+      const [results] = await connection.query(query, [usergroup]);
       return results;
     } finally {
       connection.release();

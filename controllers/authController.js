@@ -4,19 +4,17 @@ const catchAsyncError = require("../middlewares/catchAsyncError");
 const ErrorHandler = require("../utils/errorHandler");
 const bcrypt = require("bcryptjs");
 const sendToken = require("../utils/jwtToken");
+const checkGroup = require("../utils/checkGroup");
 // const { v4: uuidv4 } = require('uuid');
 
 exports.loginUser = catchAsyncError(async (req, res, next) => {
   const { username, userpassword } = req.body;
-
   // No email or password handler before submitting to the model layer
   if (!username || !userpassword) {
     return next(new ErrorHandler(`Please enter username and Password`, 400));
   }
-
   // Sending to my model layer to start DB querying
   const user = await Auth.loginUser(username);
-
   // Check if there is user in database, if not return Invalid Email or Password
   if (!user[0]) {
     return next(new ErrorHandler("Invalid Email or Password", 401));
@@ -34,16 +32,12 @@ exports.loginUser = catchAsyncError(async (req, res, next) => {
   if (!user[0].userisActive) {
     return next(new ErrorHandler("User is disabled", 403));
   }
-
   sendToken(user, 200, res);
 });
-
 // Check if the user is authenticated or not this will pull out req.user with the relevant id from login users
 exports.isUserLoggedIn = catchAsyncError(async (req, res, next) => {
   // const token = req.cookies.token;
-
   let token;
-
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith("Bearer")
@@ -76,7 +70,12 @@ exports.logout = catchAsyncError(async (req, res, next) => {
   });
 });
 
-// Javascript closure where the return function has access to the variable declared within the parent function.
 exports.checkGroup = catchAsyncError(async (req, res, next) => {
+  const results = await checkGroup(req.userid, "admin");
+  if (!results[0].RESULT) {
+    return next(
+      new ErrorHandler("You are not authorised to access this resource", 404)
+    );
+  }
   next();
 });
