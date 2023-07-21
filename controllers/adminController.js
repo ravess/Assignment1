@@ -128,7 +128,7 @@ exports.getGroups = catchAsyncError(async (req, res, next) => {
   const authorised = await checkGroup(req.userid, "admin");
   if (!authorised[0].RESULT) {
     return next(
-      new ErrorHandler("You are not authorised to access this resource", 401)
+      new ErrorHandler("You are not authorised to access this resource", 404)
     );
   }
   const groups = await Admin.getGroups();
