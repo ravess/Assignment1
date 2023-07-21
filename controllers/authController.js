@@ -69,7 +69,7 @@ exports.logout = catchAsyncError(async (req, res, next) => {
   });
 });
 
-exports.checkGroup = catchAsyncError(async (req, res, next) => {
+exports.checkgroup = catchAsyncError(async (req, res, next) => {
   const results = await checkGroup(req.userid, "admin");
   if (!results[0].RESULT) {
     return next(

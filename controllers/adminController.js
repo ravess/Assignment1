@@ -61,7 +61,7 @@ exports.createUser = catchAsyncError(async (req, res, next) => {
       new ErrorHandler(`Username,userpassword and userisActive is required`)
     );
   }
-  const hashedpassword = await bcrypt.hash(userpassword, 15);
+  const hashedpassword = await bcrypt.hash(userpassword, 10);
 
   const results = await Admin.createUser(
     username,
@@ -147,7 +147,7 @@ exports.createGroup = async (req, res, next) => {
   const result = await Admin.createGroup(usergroup);
 
   if (!result) {
-    return next(new ErrorHandler("Group could not be added", 404));
+    return next(new ErrorHandler("Groups could not be added", 404));
   }
   res.status(200).json({
     success: true,
