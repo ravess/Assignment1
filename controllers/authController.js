@@ -4,7 +4,7 @@ const catchAsyncError = require("../middlewares/catchAsyncError");
 const ErrorHandler = require("../utils/errorHandler");
 const bcrypt = require("bcryptjs");
 const sendToken = require("../utils/jwtToken");
-const checkGroup = require("../utils/checkGroup");
+const checkRole = require("../utils/checkRole");
 // const { v4: uuidv4 } = require('uuid');
 
 exports.loginUser = catchAsyncError(async (req, res, next) => {
@@ -37,13 +37,12 @@ exports.loginUser = catchAsyncError(async (req, res, next) => {
 // Check if the user is authenticated or not this will pull out req.user with the relevant id from login users
 exports.isUserLoggedIn = catchAsyncError(async (req, res, next) => {
   const token = req.cookies.token;
-  console.log(token, `from cookie`);
   // let token;
   // if (
   //   req.headers.authorization &&
-  //   req.headers.authorization.startsWith("Bearer")
+  //   req.headers.authorization.startsWith('Bearer')
   // ) {
-  //   token = req.headers.authorization.split(" ")[1];
+  //   token = req.headers.authorization.split(' ')[1];
   //   console.log(token, `heres your token`);
   // }
 
@@ -53,7 +52,6 @@ exports.isUserLoggedIn = catchAsyncError(async (req, res, next) => {
   }
   //extracting the req.user.id from login token
   const decoded = jwt.verify(token, process.env.JWT_SECRET);
-  console.log(decoded, `decoded`);
   const username = decoded.username;
   const userInfo = await Auth.getUser(username);
   req.userid = userInfo[0].userid;
@@ -71,15 +69,12 @@ exports.logout = catchAsyncError(async (req, res, next) => {
   });
 });
 
-exports.checkAdmin = catchAsyncError(async (req, res, next) => {
+exports.checkGroup = catchAsyncError(async (req, res, next) => {
   const results = await checkGroup(req.userid, "admin");
   if (!results[0].RESULT) {
     return next(
       new ErrorHandler("You are not authorised to access this resource", 404)
     );
   }
-  res.status(200).json({
-    success: true,
-    message: "Authorised check done",
-  });
+  next();
 });

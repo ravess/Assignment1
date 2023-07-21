@@ -1,4 +1,4 @@
-const dbConn = require("../config/databaseConfig");
+const dbConn = require('../config/databaseConfig');
 const pool = dbConn.createConnPool();
 
 const AuthModel = {
@@ -6,7 +6,7 @@ const AuthModel = {
     const connection = await pool.promise().getConnection();
     try {
       const query =
-        "SELECT username, userpassword, userisActive FROM user where username=?";
+        'SELECT username, userpassword, userisActive FROM user where username=?';
       const [results] = await connection.query(query, [username]);
       return results;
     } finally {
@@ -16,8 +16,7 @@ const AuthModel = {
   getUser: async (username) => {
     const connection = await pool.promise().getConnection();
     try {
-      console.log(username, `in auth model`);
-      const query = "SELECT userid FROM user where username=?";
+      const query = 'SELECT userid FROM user where username=?';
       const [results] = await connection.query(query, [username]);
       return results;
     } finally {
