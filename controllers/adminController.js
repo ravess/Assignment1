@@ -141,17 +141,17 @@ exports.getGroups = catchAsyncError(async (req, res, next) => {
     data: groups,
   });
 });
-exports.createGroup = async (req, res, next) => {
+exports.createGroup = catchAsyncError(async (req, res, next) => {
   const { usergroup } = req.body;
-
   const result = await Admin.createGroup(usergroup);
+  console.log(result, `it came out with result`);
 
   if (!result) {
-    return next(new ErrorHandler("Groups could not be added", 404));
+    return next(new ErrorHandler("Groups could not be added", 403));
   }
   res.status(200).json({
     success: true,
     message: "group is created",
     data: `${result.affectedRows} row(s) is inserted`,
   });
-};
+});

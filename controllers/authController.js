@@ -54,6 +54,7 @@ exports.isUserLoggedIn = catchAsyncError(async (req, res, next) => {
   const decoded = jwt.verify(token, process.env.JWT_SECRET);
   const username = decoded.username;
   const userInfo = await Auth.getUser(username);
+  console.log(userInfo[0]);
   req.userid = userInfo[0].userid;
   next();
 });
