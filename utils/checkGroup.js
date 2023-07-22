@@ -1,7 +1,7 @@
 const dbConn = require('../config/databaseConfig');
 const pool = dbConn.createConnPool();
 // Create and send token and save in cookie
-const checkRole = async (userid, usergroup) => {
+const checkGroup = async (userid, usergroup) => {
   const format = '%.' + usergroup + '.%';
   const connection = await pool.promise().getConnection();
   try {
@@ -14,4 +14,4 @@ const checkRole = async (userid, usergroup) => {
   }
 };
 
-module.exports = checkRole;
+module.exports = checkGroup;
