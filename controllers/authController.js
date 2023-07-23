@@ -65,7 +65,7 @@ exports.checkgroup = catchAsyncError(async (req, res, next) => {
   const results = await checkGroup(req.userid, 'admin');
   if (!results[0].RESULT) {
     return next(
-      new ErrorHandler('You are not authorised to access this resource', 404)
+      new ErrorHandler('You are not authorised to access this resource', 403)
     );
   }
   res.status(200).json({
