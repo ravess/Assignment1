@@ -144,8 +144,6 @@ exports.getGroups = catchAsyncError(async (req, res, next) => {
 exports.createGroup = catchAsyncError(async (req, res, next) => {
   const { usergroup } = req.body;
   const result = await Admin.createGroup(usergroup);
-  console.log(result, `it came out with result`);
-
   if (!result) {
     return next(new ErrorHandler('Groups could not be added', 403));
   }

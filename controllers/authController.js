@@ -9,7 +9,6 @@ const checkGroup = require('../utils/checkGroup');
 
 exports.loginUser = catchAsyncError(async (req, res, next) => {
   const { username, userpassword } = req.body;
-  console.log(req.body, `it came in `);
   // No email or password handler before submitting to the model layer
   if (!username || !userpassword) {
     return next(new ErrorHandler(`Please enter username and Password`, 404));
@@ -40,14 +39,12 @@ exports.loginUser = catchAsyncError(async (req, res, next) => {
 exports.isUserLoggedIn = catchAsyncError(async (req, res, next) => {
   const token = req.cookies.token;
   if (!token) {
-    console.log(`no token`);
     return next(new ErrorHandler('Login first to access this resource', 404));
   }
   //extracting the req.user.id from login token
   const decoded = jwt.verify(token, process.env.JWT_SECRET);
   const username = decoded.username;
   const userInfo = await Auth.getUser(username);
-  console.log(userInfo[0]);
   req.userid = userInfo[0].userid;
   next();
 });
@@ -64,9 +61,8 @@ exports.logout = catchAsyncError(async (req, res, next) => {
 });
 
 exports.checkgroup = catchAsyncError(async (req, res, next) => {
-  console.log(`it came into checkgroup`);
+  console.log(`it came to checkgroup to check`);
   const results = await checkGroup(req.userid, 'admin');
-  console.log(`got results`, results);
   if (!results[0].RESULT) {
     return next(
       new ErrorHandler('You are not authorised to access this resource', 404)
