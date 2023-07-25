@@ -36,28 +36,14 @@ process.on("uncaughtException", (err) => {
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json()); // Setup the body/json parser to handle form submits
 
-//Create active session
-// const activeSessions = {};
-
-// app.use(
-//   session({
-//     secret: process.env.SESSION_SECRET, // Set a secret for session cookie encryption
-//     resave: false, // Don't save the session if unmodified
-//     saveUninitialized: false, // Don't create a session until something is stored
-//     cookie: {
-//       secure: false, // Set to true if using HTTPS
-//       maxAge: 600000, // Session expiration time (in milliseconds)
-//     },
-//   })
-// );
-// Session setup
-
 const admin = require("./routes/adminRoute");
 const auth = require("./routes/authRoute");
 const user = require("./routes/userRoute");
-app.use("/api/v1", auth);
-app.use("/api/v1", admin);
-app.use("/api/v1", user);
+const tms = require("./routes/tmsRoute");
+app.use(auth);
+app.use(admin);
+app.use(user);
+app.use(tms);
 
 // Handled unhandled routes (make sure is below the routes)
 app.all("*", (req, res, next) => {
