@@ -1,6 +1,6 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const { isUserLoggedIn } = require("../controllers/authController");
+const { isUserLoggedIn, checkgroup } = require('../controllers/authController');
 const {
   getAllUsers,
   createUser,
@@ -8,15 +8,15 @@ const {
   getUser,
   getGroups,
   createGroup,
-} = require("../controllers/adminController");
+} = require('../controllers/adminController');
 
 router.use(isUserLoggedIn);
 
-router.route("/admin/users").get(getAllUsers);
-router.route("/admin/groups").get(getGroups);
-router.route("/admin/groups/create").post(createGroup);
-router.route("/admin/user/:userid").get(getUser);
-router.route("/admin/users/create").post(createUser);
-router.route("/admin/users/:userid/edit").put(updateUser);
+router.route('/admin/users').get(checkgroup, getAllUsers);
+router.route('/admin/groups').get(checkgroup, getGroups);
+router.route('/admin/groups/create').post(checkgroup, createGroup);
+router.route('/admin/user/:userid').get(checkgroup, getUser);
+router.route('/admin/users/create').post(checkgroup, createUser);
+router.route('/admin/users/:userid/edit').put(checkgroup, updateUser);
 
 module.exports = router;

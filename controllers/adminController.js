@@ -7,12 +7,6 @@ const checkGroup = require('../utils/checkGroup');
 
 // GET ALL USERS
 exports.getAllUsers = catchAsyncError(async (req, res, next) => {
-  const authorised = await checkGroup(req.userid, 'admin');
-  if (!authorised[0].RESULT) {
-    return next(
-      new ErrorHandler('You are not authorised to access this resource', 403)
-    );
-  }
   const users = await Admin.getAllUsers();
   if (!users || users.length === 0) {
     return next(new ErrorHandler('Unable to find any users', 404));
@@ -25,12 +19,6 @@ exports.getAllUsers = catchAsyncError(async (req, res, next) => {
 });
 
 exports.getUser = catchAsyncError(async (req, res, next) => {
-  const authorised = await checkGroup(req.userid, 'admin');
-  if (!authorised[0].RESULT) {
-    return next(
-      new ErrorHandler('You are not authorised to access this resource', 403)
-    );
-  }
   const user = await Admin.getUser(req.params.userid);
   if (!user || user.length === 0) {
     return next(new ErrorHandler('Unable to find any users', 404));
@@ -44,12 +32,6 @@ exports.getUser = catchAsyncError(async (req, res, next) => {
 });
 
 exports.createUser = catchAsyncError(async (req, res, next) => {
-  const authorised = await checkGroup(req.userid, 'admin');
-  if (!authorised[0].RESULT) {
-    return next(
-      new ErrorHandler('You are not authorised to access this resource', 403)
-    );
-  }
   validationFn.deleteEmptyFields(req.body);
   validationFn.validatePassword(req.body.userpassword);
   // Need to amend some logic here before sending into mysql statement****
@@ -82,12 +64,6 @@ exports.createUser = catchAsyncError(async (req, res, next) => {
 });
 
 exports.updateUser = catchAsyncError(async (req, res, next) => {
-  const authorised = await checkGroup(req.userid, 'admin');
-  if (!authorised[0].RESULT) {
-    return next(
-      new ErrorHandler('You are not authorised to access this resource', 403)
-    );
-  }
   validationFn.deleteEmptyFields(req.body);
   if (req.body.userpassword) {
     await validationFn.validatePassword(req.body.userpassword);
@@ -125,12 +101,6 @@ exports.updateUser = catchAsyncError(async (req, res, next) => {
 
 //Get all Existing groups
 exports.getGroups = catchAsyncError(async (req, res, next) => {
-  const authorised = await checkGroup(req.userid, 'admin');
-  if (!authorised[0].RESULT) {
-    return next(
-      new ErrorHandler('You are not authorised to access this resource', 403)
-    );
-  }
   const groups = await Admin.getGroups();
   if (!groups || groups.length === 0) {
     return next(new ErrorHandler('Unable to find any groups', 404));
@@ -142,12 +112,6 @@ exports.getGroups = catchAsyncError(async (req, res, next) => {
   });
 });
 exports.createGroup = catchAsyncError(async (req, res, next) => {
-  const authorised = await checkGroup(req.userid, 'admin');
-  if (!authorised[0].RESULT) {
-    return next(
-      new ErrorHandler('You are not authorised to access this resource', 403)
-    );
-  }
   const { usergroup } = req.body;
   const result = await Admin.createGroup(usergroup);
   if (!result) {
