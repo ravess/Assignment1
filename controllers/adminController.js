@@ -1,15 +1,21 @@
-const Admin = require('../models/adminModel');
-const catchAsyncError = require('../middlewares/catchAsyncError');
-const ErrorHandler = require('../utils/errorHandler');
-const validationFn = require('../utils/validation');
-const bcrypt = require('bcryptjs');
-const checkGroup = require('../utils/checkGroup');
+const Admin = require("../models/adminModel");
+const catchAsyncError = require("../middlewares/catchAsyncError");
+const ErrorHandler = require("../utils/errorHandler");
+const validationFn = require("../utils/validation");
+const bcrypt = require("bcryptjs");
+const checkGroup = require("../utils/checkGroup");
 
 // GET ALL USERS
 exports.getAllUsers = catchAsyncError(async (req, res, next) => {
+  const authorised = await checkGroup(req.userid, "admin");
+  if (!authorised[0].RESULT) {
+    return next(
+      new ErrorHandler("You are not authorised to access this resource", 403)
+    );
+  }
   const users = await Admin.getAllUsers();
   if (!users || users.length === 0) {
-    return next(new ErrorHandler('Unable to find any users', 404));
+    return next(new ErrorHandler("Unable to find any users", 404));
   }
   res.status(200).json({
     success: true,
@@ -19,19 +25,31 @@ exports.getAllUsers = catchAsyncError(async (req, res, next) => {
 });
 
 exports.getUser = catchAsyncError(async (req, res, next) => {
+  const authorised = await checkGroup(req.userid, "admin");
+  if (!authorised[0].RESULT) {
+    return next(
+      new ErrorHandler("You are not authorised to access this resource", 403)
+    );
+  }
   const user = await Admin.getUser(req.params.userid);
   if (!user || user.length === 0) {
-    return next(new ErrorHandler('Unable to find any users', 404));
+    return next(new ErrorHandler("Unable to find any users", 404));
   }
 
   res.status(200).json({
     success: true,
-    message: 'Here is the profile',
+    message: "Here is the profile",
     data: user,
   });
 });
 
 exports.createUser = catchAsyncError(async (req, res, next) => {
+  const authorised = await checkGroup(req.userid, "admin");
+  if (!authorised[0].RESULT) {
+    return next(
+      new ErrorHandler("You are not authorised to access this resource", 403)
+    );
+  }
   validationFn.deleteEmptyFields(req.body);
   validationFn.validatePassword(req.body.userpassword);
   // Need to amend some logic here before sending into mysql statement****
@@ -53,17 +71,23 @@ exports.createUser = catchAsyncError(async (req, res, next) => {
     userisActive
   );
   if (!results) {
-    return next(new ErrorHandler('User not found', 404));
+    return next(new ErrorHandler("User not found", 404));
   }
 
   res.status(200).json({
     success: true,
-    message: 'User is created',
+    message: "User is created",
     data: `${results.affectedRows} row(s) is inserted`,
   });
 });
 
 exports.updateUser = catchAsyncError(async (req, res, next) => {
+  const authorised = await checkGroup(req.userid, "admin");
+  if (!authorised[0].RESULT) {
+    return next(
+      new ErrorHandler("You are not authorised to access this resource", 403)
+    );
+  }
   validationFn.deleteEmptyFields(req.body);
   if (req.body.userpassword) {
     await validationFn.validatePassword(req.body.userpassword);
@@ -73,37 +97,43 @@ exports.updateUser = catchAsyncError(async (req, res, next) => {
   let clauses = [];
   let values = [];
   for (const property in req.body) {
-    if (property === 'userid') {
+    if (property === "userid") {
       res.status(400).json({
         success: false,
-        meesage: 'Not Allowed to change.',
+        meesage: "Not Allowed to change.",
       });
     }
-    clauses.push(property + '=?');
+    clauses.push(property + "=?");
     values.push(req.body[property]);
   }
   if (values) {
     values.push(req.params.userid);
   }
   // The above code is to allow me to dynamicly accept any json values
-  clauses = clauses.join(',');
+  clauses = clauses.join(",");
   const results = await Admin.updateUser(clauses, values);
 
   if (!results) {
-    return next(new ErrorHandler('User not found', 404));
+    return next(new ErrorHandler("User not found", 404));
   }
   res.status(200).json({
     success: true,
-    message: 'User is updated',
+    message: "User is updated",
     data: `${results.affectedRows} row(s) is updated`,
   });
 });
 
 //Get all Existing groups
 exports.getGroups = catchAsyncError(async (req, res, next) => {
+  const authorised = await checkGroup(req.userid, "admin");
+  if (!authorised[0].RESULT) {
+    return next(
+      new ErrorHandler("You are not authorised to access this resource", 403)
+    );
+  }
   const groups = await Admin.getGroups();
   if (!groups || groups.length === 0) {
-    return next(new ErrorHandler('Unable to find any groups', 404));
+    return next(new ErrorHandler("Unable to find any groups", 404));
   }
   res.status(200).json({
     success: true,
@@ -112,14 +142,20 @@ exports.getGroups = catchAsyncError(async (req, res, next) => {
   });
 });
 exports.createGroup = catchAsyncError(async (req, res, next) => {
+  const authorised = await checkGroup(req.userid, "admin");
+  if (!authorised[0].RESULT) {
+    return next(
+      new ErrorHandler("You are not authorised to access this resource", 403)
+    );
+  }
   const { usergroup } = req.body;
   const result = await Admin.createGroup(usergroup);
   if (!result) {
-    return next(new ErrorHandler('Groups could not be added', 404));
+    return next(new ErrorHandler("Groups could not be added", 404));
   }
   res.status(200).json({
     success: true,
-    message: 'group is created',
+    message: "group is created",
     data: `${result.affectedRows} row(s) is inserted`,
   });
 });

@@ -7,32 +7,32 @@ const tmsModel = {
     try {
       const query =
         //Need change the query
-        "SELECT username, userid, useremail, userisActive, usergroup FROM user";
+        "SELECT App_Acronym FROM application";
       const [results] = await connection.query(query);
       return results;
     } finally {
       connection.release();
     }
   },
-  getApp: async () => {
+  getApp: async (appAcronymID) => {
     const connection = await pool.promise().getConnection();
     try {
       const query =
         //Need change the query
-        "SELECT username, userid, useremail, userisActive, usergroup FROM user";
-      const [results] = await connection.query(query);
+        "SELECT * FROM application where App_Acronym=?";
+      const [results] = await connection.query(query, [appAcronymID]);
       return results;
     } finally {
       connection.release();
     }
   },
-  createApp: async (usergroup) => {
+  createApp: async (appObj) => {
     const connection = await pool.promise().getConnection();
     try {
       const query =
         //Need change the query
-        "insert into `groups`(groupname) values(?)";
-      const [results] = await connection.query(query, [usergroup]);
+        "INSERT INTO application SET ?";
+      const [results] = await connection.query(query, [appObj]);
       return results;
     } finally {
       connection.release();
@@ -43,7 +43,7 @@ const tmsModel = {
     try {
       const query =
         //Need change the query
-        "UPDATE user SET " + clauses + " WHERE userid=?";
+        "UPDATE application SET " + clauses + " WHERE App_Acronym=?";
       const [results] = await connection.query(query, values);
       return results;
     } finally {
@@ -55,32 +55,32 @@ const tmsModel = {
     try {
       const query =
         //Need change the query
-        "SELECT username, userid, useremail, userisActive, usergroup FROM user";
+        "SELECT Plan_MVP_name FROM plan";
       const [results] = await connection.query(query);
       return results;
     } finally {
       connection.release();
     }
   },
-  getPlan: async (userid) => {
+  getPlan: async (mvpparams) => {
     const connection = await pool.promise().getConnection();
     try {
       const query =
         //Need change the query
-        "SELECT username,useremail,usergroup,userisActive FROM user where userid=?";
-      const [results] = await connection.query(query, [userid]);
+        "SELECT * FROM plan where Plan_MVP_name=?";
+      const [results] = await connection.query(query, [mvpparams]);
       return results;
     } finally {
       connection.release();
     }
   },
-  createPlan: async (usergroup) => {
+  createPlan: async (planObj) => {
     const connection = await pool.promise().getConnection();
     try {
       const query =
         //Need change the query
-        "insert into `groups`(groupname) values(?)";
-      const [results] = await connection.query(query, [usergroup]);
+        "insert into plan set ?";
+      const [results] = await connection.query(query, [planObj]);
       return results;
     } finally {
       connection.release();
@@ -91,7 +91,7 @@ const tmsModel = {
     try {
       const query =
         //Need change the query
-        "UPDATE user SET " + clauses + " WHERE userid=?";
+        "UPDATE plan SET " + clauses + " WHERE Plan_MVP_name=?";
       const [results] = await connection.query(query, values);
       return results;
     } finally {

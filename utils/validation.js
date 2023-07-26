@@ -1,15 +1,15 @@
 // const bcrypt = require("bcryptjs");
-const ErrorHandler = require('./errorHandler');
+const ErrorHandler = require("./errorHandler");
 const validationFn = {
   validatePassword: async (userpassword) => {
     const rePassword = new RegExp(
-      '^(?=.*[a-zA-Z0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,10}$'
+      "^(?=.*[a-zA-Z0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{8,10}$"
     );
 
     if (!rePassword.test(userpassword)) {
       console.log(`it didnt validate`);
       throw new ErrorHandler(
-        'You are require to set the pw which have min 8 chars & max 10 chars which is alphanumeric and a special char',
+        "You are require to set the pw which have min 8 chars & max 10 chars which is alphanumeric and a special char",
         400
       );
     }
@@ -17,8 +17,8 @@ const validationFn = {
   nullForEmailAndUsergroup: (reqBodyObj) => {
     for (const property in reqBodyObj) {
       if (
-        (property === 'useremail' || property === 'usergroup') &&
-        reqBodyObj[property] === ''
+        (property === "useremail" || property === "usergroup") &&
+        reqBodyObj[property] === ""
       ) {
         reqBodyObj[property] = null;
       }
@@ -26,16 +26,24 @@ const validationFn = {
   },
   deleteEmptyFields: (reqBodyObj) => {
     for (const property in reqBodyObj) {
-      if (reqBodyObj[property] === '') {
+      if (reqBodyObj[property] === "") {
         delete reqBodyObj[property];
       }
     }
   },
-
-  //
-  checkgroup: (userid, usergroup) => {
-    return true;
-    return false;
+  changeEmptyFieldsToNull: (reqBodyObj) => {
+    for (const property in reqBodyObj) {
+      if (reqBodyObj[property] === "") {
+        reqBodyObj[property] = null;
+      }
+    }
+  },
+  removewhitespaces: (reqBodyObj) => {
+    for (const property in reqBodyObj) {
+      if (property === "App_Acronym" || property === "Plan_MVP_name") {
+        reqBodyObj[property] = reqBodyObj[property].replace(/\s/g, "").trim();
+      }
+    }
   },
 };
 module.exports = validationFn;

@@ -1,6 +1,7 @@
 const catchAsyncError = require("../middlewares/catchAsyncError");
 const validationFn = require("../utils/validation");
 const TMS = require("../models/tmsModel");
+const checkGroup = require("../utils/checkGroup");
 
 // For App
 exports.getAllApps = catchAsyncError(async (req, res, next) => {
@@ -28,7 +29,7 @@ exports.getApp = catchAsyncError(async (req, res, next) => {
       new ErrorHandler("You are not authorised to access this resource", 403)
     );
   }
-  const app = await TMS.getApp(req.params.appid);
+  const app = await TMS.getApp(req.params.appacronym);
   if (!app || app.length === 0) {
     return next(new ErrorHandler("Unable to find app", 404));
   }
@@ -47,37 +48,21 @@ exports.createApp = catchAsyncError(async (req, res, next) => {
       new ErrorHandler("You are not authorised to access this resource", 403)
     );
   }
-  validationFn.deleteEmptyFields(req.body);
+  validationFn.changeEmptyFieldsToNull(req.body);
+  validationFn.removewhitespaces(req.body);
   // Need to amend some logic here before sending into mysql statement****
-  const {
-    app_acronym,
-    app_description,
-    app_rNumber,
-    app_startDate,
-    app_endDate,
-    app_permit_open,
-    app_permite_toDolist,
-    app_permit_Doing,
-    app_permit_done,
-  } = req.body;
 
-  if (!app_acronym || !app_description || !app_rNumber === null) {
+  if (
+    !req.body.App_Acronym ||
+    !req.body.App_Description ||
+    !req.body.App_Rnumber === null
+  ) {
     return next(
       new ErrorHandler(`appacronym, appdescription and apprNumber is required`)
     );
   }
 
-  const results = await TMS.createApp(
-    app_acronym,
-    app_description,
-    app_rNumber,
-    app_startDate,
-    app_endDate,
-    app_permit_open,
-    app_permite_toDolist,
-    app_permit_Doing,
-    app_permit_done
-  );
+  const results = await TMS.createApp(req.body);
   if (!results) {
     return next(new ErrorHandler("Unable to create App", 404));
   }
@@ -101,7 +86,7 @@ exports.updateApp = catchAsyncError(async (req, res, next) => {
   let clauses = [];
   let values = [];
   for (const property in req.body) {
-    if (property === "userid") {
+    if (property === "App_Acronym") {
       res.status(400).json({
         success: false,
         meesage: "Not Allowed to change.",
@@ -111,7 +96,7 @@ exports.updateApp = catchAsyncError(async (req, res, next) => {
     values.push(req.body[property]);
   }
   if (values) {
-    values.push(req.params.appid);
+    values.push(req.params.appacronym);
   }
   // The above code is to allow me to dynamicly accept any json values
   clauses = clauses.join(",");
@@ -128,7 +113,7 @@ exports.updateApp = catchAsyncError(async (req, res, next) => {
 });
 
 // For Plan
-exports.getAllPlans = catchAsyncError(async (req, rest, next) => {
+exports.getAllPlans = catchAsyncError(async (req, res, next) => {
   const authorised = await checkGroup(req.userid, "admin");
   if (!authorised[0].RESULT) {
     return next(
@@ -141,19 +126,20 @@ exports.getAllPlans = catchAsyncError(async (req, rest, next) => {
   }
   res.status(200).json({
     success: true,
-    results: apps.length,
-    data: apps,
+    results: plans.length,
+    data: plans,
   });
 });
 
-exports.getPlan = catchAsyncError(async (req, rest, next) => {
+exports.getPlan = catchAsyncError(async (req, res, next) => {
   const authorised = await checkGroup(req.userid, "admin");
   if (!authorised[0].RESULT) {
     return next(
       new ErrorHandler("You are not authorised to access this resource", 403)
     );
   }
-  const plan = await TMS.getApp(req.params.appid);
+
+  const plan = await TMS.getPlan(req.params.planid);
   if (!plan || plan.length === 0) {
     return next(new ErrorHandler("Unable to find plan", 404));
   }
@@ -172,21 +158,16 @@ exports.createPlan = catchAsyncError(async (req, res, next) => {
       new ErrorHandler("You are not authorised to access this resource", 403)
     );
   }
-  validationFn.deleteEmptyFields(req.body);
+  validationFn.changeEmptyFieldsToNull(req.body);
+  validationFn.removewhitespaces(req.body);
+  req.body.Plan_app_Acronym = req.params.appacronym;
   // Need to amend some logic here before sending into mysql statement****
-  const { plan_mvp_name, plan_startDate, plan_endDate, plan_app_acronym } =
-    req.body;
 
-  if (!plan_mvp_name || !plan_app_acronym === null) {
+  if (!req.body.Plan_MVP_name || !req.body.Plan_app_Acronym === null) {
     return next(new ErrorHandler(`Something is required`));
   }
 
-  const results = await TMS.createPlan(
-    plan_mvp_name,
-    plan_startDate,
-    plan_endDate,
-    plan_app_acronym
-  );
+  const results = await TMS.createPlan(req.body);
   if (!results) {
     return next(new ErrorHandler("Unable to create Plan", 404));
   }
@@ -210,7 +191,7 @@ exports.updatePlan = catchAsyncError(async (req, res, next) => {
   let clauses = [];
   let values = [];
   for (const property in req.body) {
-    if (property === "userid") {
+    if (property === "Plan_MVP_name") {
       res.status(400).json({
         success: false,
         meesage: "Not Allowed to change.",
@@ -220,10 +201,11 @@ exports.updatePlan = catchAsyncError(async (req, res, next) => {
     values.push(req.body[property]);
   }
   if (values) {
-    values.push(req.params.userid);
+    values.push(req.params.planid);
   }
   // The above code is to allow me to dynamicly accept any json values
   clauses = clauses.join(",");
+
   const results = await TMS.updatePlan(clauses, values);
 
   if (!results) {
@@ -250,8 +232,8 @@ exports.getAllTasks = catchAsyncError(async (req, rest, next) => {
   }
   res.status(200).json({
     success: true,
-    results: apps.length,
-    data: apps,
+    results: tasks.length,
+    data: tasks,
   });
 });
 exports.getTask = catchAsyncError(async (req, rest, next) => {
@@ -261,15 +243,15 @@ exports.getTask = catchAsyncError(async (req, rest, next) => {
       new ErrorHandler("You are not authorised to access this resource", 403)
     );
   }
-  const task = await TMS.getTask(req.params.appid);
+  const task = await TMS.getTask(req.params.taskid);
   if (!task || task.length === 0) {
     return next(new ErrorHandler("Unable to find task", 404));
   }
 
   res.status(200).json({
     success: true,
-    message: "Here is the app details",
-    data: app,
+    message: "Here is the task details",
+    data: task,
   });
 });
 
@@ -280,30 +262,60 @@ exports.createTask = catchAsyncError(async (req, res, next) => {
       new ErrorHandler("You are not authorised to access this resource", 403)
     );
   }
-  validationFn.deleteEmptyFields(req.body);
-  validationFn.validatePassword(req.body.userpassword);
-  // Need to amend some logic here before sending into mysql statement****
-  const { username, useremail, userpassword, usergroup, userisActive } =
-    req.body;
 
-  if (!username || !userpassword || userisActive === null) {
+  const appData = await TMS.getApp(req.params.appacronym);
+  const appAcronym = appData[0].App_Acronym;
+  const appRNumber = appData[0].App_Rnumber + 1;
+  const taskid = appAcronym + "_" + appRNumber;
+
+  //Format the date to yyyy-mm-dd
+  const currentTimestamp = Date.now();
+  const currentDate = new Date(currentTimestamp);
+  const year = currentDate.getFullYear();
+  const month = String(currentDate.getMonth() + 1).padStart(2, "0");
+  const day = String(currentDate.getDate()).padStart(2, "0");
+  const formattedDate = `${year}-${month}-${day}`;
+  const formattedTimestamp = currentDate
+    .toISOString()
+    .slice(0, 19)
+    .replace("T", " ");
+
+  validationFn.changeEmptyFieldsToNull(req.body);
+
+  req.body.Task_createDate = formattedDate;
+  req.body.Task_creator = req.username;
+  req.body.Task_state = "open";
+  req.body.Task_owner = req.username;
+  req.body.Task_id = taskid;
+  req.body.Task_plan = req.params.planid;
+  req.body.Task_app_Acronym = req.params.appacronym;
+
+  // Need to amend some logic here before sending into mysql statement****
+
+  if (!req.body.Task_name || !req.body.Task_description === null) {
     return next(new ErrorHandler(`Something is required`));
   }
 
-  const results = await TMS.createApp(
-    username,
-    hashedpassword,
-    useremail,
-    usergroup,
-    userisActive
-  );
-  if (!results) {
-    return next(new ErrorHandler("App not found", 404));
+  req.body.Task_notes = req.body.Task_notes || [];
+  if (req.body.Task_notes.length > 0) {
+    const notesObj = {
+      username: req.username,
+      currentState: req.body.Task_state,
+      date: req.body.Task_createDate,
+      timestamp: formattedTimestamp,
+    };
+    req.body.Task_notes.push(notesObj);
   }
+
+  const results = await TMS.createTask(req.body);
+  if (!results) {
+    return next(new ErrorHandler("Task could not be created", 404));
+  }
+  await TMS.updateApp();
 
   res.status(200).json({
     success: true,
-    message: "App is created",
+    message: "Task is created",
     data: `${results.affectedRows} row(s) is inserted`,
   });
 });
@@ -330,18 +342,18 @@ exports.updateTask = catchAsyncError(async (req, res, next) => {
     values.push(req.body[property]);
   }
   if (values) {
-    values.push(req.params.userid);
+    values.push(req.params.taskid);
   }
   // The above code is to allow me to dynamicly accept any json values
   clauses = clauses.join(",");
   const results = await TMS.updateApp(clauses, values);
 
   if (!results) {
-    return next(new ErrorHandler("App not found", 404));
+    return next(new ErrorHandler("Task could not be updated", 404));
   }
   res.status(200).json({
     success: true,
-    message: "App is updated",
+    message: "Task is updated",
     data: `${results.affectedRows} row(s) is updated`,
   });
 });

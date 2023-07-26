@@ -14,22 +14,22 @@ const {
   getApp,
   getTask,
   getPlan,
+  updatePlan,
 } = require("../controllers/tmsController");
-const { updatePlan } = require("../models/tmsModel");
 
 router.use(isUserLoggedIn);
 
 router.route("/apps").get(getAllApps);
-router.route("/apps/:appid").get(getApp);
-router.route("/apps/:appid/edit").put(updateApp);
+router.route("/apps/:appacronym").get(getApp);
+router.route("/apps/:appacronym/edit").put(updateApp);
 router.route("/apps/create").post(createApp);
-router.route("/tasks").get(getAllTasks);
-router.route("/tasks/:taskid").get(getTask);
-router.route("/tasks/:taskid/edit").put(updateTask);
-router.route("/tasks/create").post(createTask);
-router.route("/plans").get(getAllPlans);
-router.route("/plans/:planid").get(getPlan);
-router.route("/plans/:planid/edit").put(updatePlan);
-router.route("/plans/create").post(createPlan);
+router.route("/apps/:appacronym/tasks").get(getAllTasks);
+router.route("/apps/:appacronym/tasks/:taskid").get(getTask);
+router.route("/apps/:appacronym/tasks/:taskid/edit").put(updateTask);
+router.route("/apps/:appacronym/tasks/create").post(createTask);
+router.route("/apps/:appacronym/plans").get(getAllPlans);
+router.route("/apps/:appacronym/plans/:planid").get(getPlan);
+router.route("/apps/:appacronym/plans/:planid/edit").put(updatePlan);
+router.route("/apps/:appacronym/plans/create").post(createPlan);
 
 module.exports = router;
