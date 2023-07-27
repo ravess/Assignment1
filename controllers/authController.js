@@ -37,17 +37,17 @@ exports.loginUser = catchAsyncError(async (req, res, next) => {
 });
 // Check if the user is authenticated or not this will pull out req.user with the relevant id from login users
 exports.isUserLoggedIn = catchAsyncError(async (req, res, next) => {
-  // const token = req.cookies.token;
+  const token = req.cookies.token;
 
   // To use for postman
-  let token;
+  // let token;
 
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer")
-  ) {
-    token = req.headers.authorization.split(" ")[1];
-  }
+  // if (
+  //   req.headers.authorization &&
+  //   req.headers.authorization.startsWith("Bearer")
+  // ) {
+  //   token = req.headers.authorization.split(" ")[1];
+  // }
 
   if (!token) {
     return next(new ErrorHandler("Login first to access this resource", 404));
