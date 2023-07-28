@@ -1,5 +1,3 @@
-CREATE DATABASE  IF NOT EXISTS `nodelogin` /*!40100 DEFAULT CHARACTER SET utf8mb3 */ /*!80016 DEFAULT ENCRYPTION='N' */;
-USE `nodelogin`;
 -- MySQL dump 10.13  Distrib 8.0.33, for Win64 (x86_64)
 --
 -- Host: localhost    Database: nodelogin
@@ -45,7 +43,7 @@ CREATE TABLE `application` (
 
 LOCK TABLES `application` WRITE;
 /*!40000 ALTER TABLE `application` DISABLE KEYS */;
-INSERT INTO `application` VALUES ('eatwhat','Something to come up with later',4,'2023-06-23','2025-07-22','.pm.','.dev.','.admin','.dev.'),('EatWhat2','Something to come up with later',1,'2022-03-22','2024-03-24','.dev.','.dev.user.','.dev.','.admin.'),('somerandomApp2','Something to come up with later',1,NULL,NULL,NULL,NULL,NULL,NULL);
+INSERT INTO `application` VALUES ('eatwhat','Something to come up with later',7,'2023-06-23','2025-07-22','.pm.','.dev.','.admin','.dev.'),('EatWhat2','Something to come up with later',1,'2022-03-22','2024-03-24','.dev.','.dev.user.','.dev.','.admin.'),('somerandomApp2','Something to come up with later',1,NULL,NULL,NULL,NULL,NULL,NULL);
 /*!40000 ALTER TABLE `application` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -131,6 +129,7 @@ CREATE TABLE `task` (
 
 LOCK TABLES `task` WRITE;
 /*!40000 ALTER TABLE `task` DISABLE KEYS */;
+INSERT INTO `task` VALUES ('Creating a new button912','Need to set up mock up  of login Screen and at the same time','[{\"username\":\"admin\",\"currentState\":\"open\",\"date\":\"2023-07-28\",\"timestamp\":\"16:12:27\",\"notes\":\"asdsadsad1111\"},{\"username\":\"admin\",\"currentState\":\"done\",\"date\":\"2023-07-28\",\"timestamp\":\"16:13:55\",\"notes\":\"Love from admin\"}]','eatwhat_5',NULL,'eatwhat','done','admin','admin','2023-07-28'),('Creating a new login screen','Need to set up mock up  of login Screen and at the same time','[{\"username\":\"admin\",\"currentState\":\"open\",\"date\":\"2023-07-28\",\"timestamp\":\"16:13:18\",\"notes\":\"asdsadsad1111\"}]','eatwhat_6',NULL,'eatwhat','open','admin','admin','2023-07-28'),('Creating a promote task','Need to set up mock up  of login Screen and at the same time','[{\"username\":\"admin\",\"currentState\":\"open\",\"date\":\"2023-07-28\",\"timestamp\":\"16:13:34\",\"notes\":\"asdsadsad1111\"}]','eatwhat_7',NULL,'eatwhat','open','admin','admin','2023-07-28');
 /*!40000 ALTER TABLE `task` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -174,4 +173,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-07-28  8:57:54
+-- Dump completed on 2023-07-28 16:25:28
