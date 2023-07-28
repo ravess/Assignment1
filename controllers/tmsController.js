@@ -2,6 +2,7 @@ const catchAsyncError = require("../middlewares/catchAsyncError");
 const validationFn = require("../utils/validation");
 const TMS = require("../models/tmsModel");
 const checkGroup = require("../utils/checkGroup");
+const ErrorHandler = require("../utils/errorHandler");
 
 // For App
 exports.getAllApps = catchAsyncError(async (req, res, next) => {
@@ -244,28 +245,65 @@ exports.getAllTasks = catchAsyncError(async (req, res, next) => {
   if (!tasks || tasks.length === 0) {
     return next(new ErrorHandler("Unable to find any tasks", 404));
   }
+
+  const formattedTasks = tasks.map((task) => {
+    const localTime = task.Task_createDate
+      ? task.Task_createDate.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        })
+      : null;
+    return {
+      ...task,
+      Task_notes: JSON.parse(task.Task_notes),
+      Task_createDate: task.Task_createDate
+        ? task.Task_createDate.toISOString().slice(0, 10)
+        : null,
+      Task_timestamp: localTime,
+    };
+  });
+
   res.status(200).json({
     success: true,
-    results: tasks.length,
-    data: tasks,
+    results: formattedTasks.length,
+    data: formattedTasks,
   });
 });
 exports.getTask = catchAsyncError(async (req, res, next) => {
-  const authorised = await checkGroup(req.appid, "admin");
+  const authorised = await checkGroup(req.userid, "admin");
   if (!authorised[0].RESULT) {
     return next(
       new ErrorHandler("You are not authorised to access this resource", 403)
     );
   }
+
   const task = await TMS.getTask(req.params.taskid);
   if (!task || task.length === 0) {
     return next(new ErrorHandler("Unable to find task", 404));
   }
+  const formattedTask = task.map((task) => {
+    const localTime = task.Task_createDate
+      ? task.Task_createDate.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        })
+      : null;
+    return {
+      ...task,
+      Task_notes: JSON.parse(task.Task_notes),
+      Task_createDate: task.Task_createDate
+        ? task.Task_createDate.toISOString().slice(0, 10)
+        : null,
+      Task_timestamp: localTime,
+    };
+  });
 
   res.status(200).json({
     success: true,
     message: "Here is the task details",
-    data: task,
+    data: formattedTask,
   });
 });
 
@@ -283,17 +321,17 @@ exports.createTask = catchAsyncError(async (req, res, next) => {
   const taskid = appAcronym + "_" + appRNumber;
 
   //Format the date to yyyy-mm-dd
-  const currentTimestamp = Date.now();
-  const currentDate = new Date(currentTimestamp);
+  const currentDate = new Date();
   const year = currentDate.getFullYear();
   const month = String(currentDate.getMonth() + 1).padStart(2, "0");
   const day = String(currentDate.getDate()).padStart(2, "0");
+  const hours = String(currentDate.getHours()).padStart(2, "0");
+  const minutes = String(currentDate.getMinutes()).padStart(2, "0");
+  const seconds = String(currentDate.getSeconds()).padStart(2, "0");
   const formattedDate = `${year}-${month}-${day}`;
-  const formattedTimestamp = currentDate
-    .toISOString()
-    .slice(0, 19)
-    .replace("T", " ");
+  const formattedTimestamp = `${hours}:${minutes}:${seconds}`;
 
+  //Might need to remove for the task plan if there is a body
   validationFn.changeEmptyFieldsToNull(req.body);
 
   req.body.Task_createDate = formattedDate;
@@ -301,10 +339,7 @@ exports.createTask = catchAsyncError(async (req, res, next) => {
   req.body.Task_state = "open";
   req.body.Task_owner = req.username;
   req.body.Task_id = taskid;
-  req.body.Task_plan = req.params.planid;
   req.body.Task_app_Acronym = req.params.appacronym;
-
-  // Need to amend some logic here before sending into mysql statement****
 
   if (!req.body.Task_name || !req.body.Task_description === null) {
     return next(new ErrorHandler(`Something is required`));
@@ -312,15 +347,18 @@ exports.createTask = catchAsyncError(async (req, res, next) => {
 
   req.body.Task_notes = req.body.Task_notes || [];
   if (req.body.Task_notes.length > 0) {
+    const notesArr = [];
     const notesObj = {
       username: req.username,
       currentState: req.body.Task_state,
       date: req.body.Task_createDate,
       timestamp: formattedTimestamp,
-      notes: req.body.message,
+      notes: req.body.Task_notes,
     };
-    req.body.Task_notes.push(notesObj);
+    notesArr.push(notesObj);
+    req.body.Task_notes = notesArr;
   }
+  req.body.Task_notes = JSON.stringify(req.body.Task_notes);
 
   const results = await TMS.createTask(req.body);
   if (!results) {
@@ -349,12 +387,51 @@ exports.updateTask = catchAsyncError(async (req, res, next) => {
       new ErrorHandler("You are not authorised to access this resource", 403)
     );
   }
+
+  const currentDate = new Date();
+  const year = currentDate.getFullYear();
+  const month = String(currentDate.getMonth() + 1).padStart(2, "0");
+  const day = String(currentDate.getDate()).padStart(2, "0");
+  const hours = String(currentDate.getHours()).padStart(2, "0");
+  const minutes = String(currentDate.getMinutes()).padStart(2, "0");
+  const seconds = String(currentDate.getSeconds()).padStart(2, "0");
+  const formattedDate = `${year}-${month}-${day}`;
+  const formattedTimestamp = `${hours}:${minutes}:${seconds}`;
+
+  const { taskid } = req.params;
+  if (req.body.Task_notes !== "" && req.body.Task_notes !== null) {
+    const taskNoteArr = await TMS.getTaskNotes(taskid);
+    if (!taskNoteArr) {
+      return next(
+        new ErrorHandler(
+          "Unable to retrieve any task notes even an empty error",
+          404
+        )
+      );
+    }
+    let newTaskArr = [];
+    const notesObj = {
+      username: req.username,
+      currentState: req.body.Task_state,
+      date: formattedDate,
+      timestamp: formattedTimestamp,
+      notes: req.body.Task_notes,
+    };
+    newTaskArr = JSON.parse(taskNoteArr[0].Task_notes);
+    newTaskArr.push(notesObj);
+    req.body.Task_notes = JSON.stringify(newTaskArr);
+  }
+
   validationFn.deleteEmptyFields(req.body);
 
   let clauses = [];
   let values = [];
   for (const property in req.body) {
-    if (property === "userid") {
+    if (
+      property === "Task_name" ||
+      property === "Task_description" ||
+      property === "Task_id"
+    ) {
       res.status(400).json({
         success: false,
         meesage: "Not Allowed to change.",
@@ -368,7 +445,7 @@ exports.updateTask = catchAsyncError(async (req, res, next) => {
   }
   // The above code is to allow me to dynamicly accept any json values
   clauses = clauses.join(",");
-  const results = await TMS.updateApp(clauses, values);
+  const results = await TMS.updateTask(clauses, values);
 
   if (!results) {
     return next(new ErrorHandler("Task could not be updated", 404));

@@ -120,11 +120,21 @@ const tmsModel = {
       connection.release();
     }
   },
-  getTask: async (clauses, values) => {
+  getTask: async (taskid) => {
     const connection = await pool.promise().getConnection();
     try {
-      const query = "SELECT * from task where task_name=?";
-      const [results] = await connection.query(query, values);
+      const query = "SELECT * from task where Task_id=?";
+      const [results] = await connection.query(query, taskid);
+      return results;
+    } finally {
+      connection.release();
+    }
+  },
+  getTaskNotes: async (taskid) => {
+    const connection = await pool.promise().getConnection();
+    try {
+      const query = "SELECT Task_notes from task where Task_id=?";
+      const [results] = await connection.query(query, taskid);
       return results;
     } finally {
       connection.release();
@@ -134,7 +144,7 @@ const tmsModel = {
     const connection = await pool.promise().getConnection();
     try {
       const query = "insert into task set ?";
-      const [results] = await connection.query(query, [taskObj]);
+      const [results] = await connection.query(query, taskObj);
       return results;
     } finally {
       connection.release();
@@ -145,7 +155,7 @@ const tmsModel = {
     try {
       const query =
         //Need change the query
-        "UPDATE user SET " + clauses + " WHERE userid=?";
+        "UPDATE task SET " + clauses + " WHERE Task_id=?";
       const [results] = await connection.query(query, values);
       return results;
     } finally {
