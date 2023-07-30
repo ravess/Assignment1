@@ -63,18 +63,26 @@ exports.createApp = catchAsyncError(async (req, res, next) => {
       new ErrorHandler('You are not authorised to access this resource', 403)
     );
   }
+  const errMessages = [];
+
   validationFn.changeEmptyFieldsToNull(req.body);
+  validationFn.concatPermitWith(req.body);
   validationFn.removewhitespaces(req.body);
   // Need to amend some logic here before sending into mysql statement****
 
-  if (
-    !req.body.App_Acronym ||
-    !req.body.App_Description ||
-    !req.body.App_Rnumber === null
-  ) {
-    return next(
-      new ErrorHandler(`appacronym, appdescription and apprNumber is required`)
-    );
+  if (!req.body.App_Acronym) {
+    errMessages.push('App Acronym is required');
+  }
+  if (!req.body.App_Description) {
+    errMessages.push('App Description is required');
+  }
+  if (req.body.App_Rnumber === null) {
+    errMessages.push('App R Number is required');
+  } else if (req.body.App_Rnumber <= 0) {
+    errMessages.push('App R Number cannot be 0 or negative');
+  }
+  if (errMessages.length > 0) {
+    return next(new ErrorHandler(errMessages.join(', '), 404));
   }
 
   const results = await TMS.createApp(req.body);
@@ -135,7 +143,7 @@ exports.getAllPlans = catchAsyncError(async (req, res, next) => {
       new ErrorHandler('You are not authorised to access this resource', 403)
     );
   }
-  const plans = await TMS.getAllPlans();
+  const plans = await TMS.getAllPlans(req.params.appacronym);
   if (!plans || plans.length === 0) {
     return next(new ErrorHandler('Unable to find any plans', 404));
   }
@@ -175,12 +183,12 @@ exports.createPlan = catchAsyncError(async (req, res, next) => {
   }
 
   validationFn.changeEmptyFieldsToNull(req.body);
-  validationFn.removewhitespaces(req.body);
+  // validationFn.removewhitespaces(req.body);
   req.body.Plan_app_Acronym = req.params.appacronym;
 
   // Need to amend some logic here before sending into mysql statement****
 
-  if (!req.body.Plan_MVP_name || !req.body.Plan_app_Acronym === null) {
+  if (req.body.Plan_MVP_name === null) {
     return next(new ErrorHandler(`Name is required`, 404));
   }
   if (req.body.Plan_startDate > req.body.Plan_endDate) {
@@ -248,7 +256,7 @@ exports.getAllTasks = catchAsyncError(async (req, res, next) => {
       new ErrorHandler('You are not authorised to access this resource', 403)
     );
   }
-  const tasks = await TMS.getAllTasks();
+  const tasks = await TMS.getAllTasks(req.params.appacronym);
   if (!tasks || tasks.length === 0) {
     return next(new ErrorHandler('Unable to find any tasks', 404));
   }
@@ -353,7 +361,7 @@ exports.createTask = catchAsyncError(async (req, res, next) => {
   }
 
   req.body.Task_notes = req.body.Task_notes || [];
-  if (req.body.Task_notes.length > 0) {
+  if (req.body.Task_notes.length > 0 || Array.isArray(req.body.Task_notes)) {
     const notesArr = [];
     const notesObj = {
       username: req.username,
@@ -406,15 +414,37 @@ exports.updateTask = catchAsyncError(async (req, res, next) => {
   const formattedTimestamp = `${hours}:${minutes}:${seconds}`;
 
   const { taskid } = req.params;
+
+  if (req.body.Task_plan) {
+    const newMessage =
+      req.username +
+      ' has updated the task to associate with ' +
+      req.body.Task_plan;
+
+    if (req.body.Task_notes !== '' && req.body.Task_notes !== null) {
+      req.body.Task_notes += '\n' + newMessage;
+    } else {
+      req.body.Task_notes = newMessage;
+    }
+  }
+
+  if (req.body.Task_plan === '') {
+    const newMessage =
+      req.username +
+      ' has updated the task and remove it from any plans ' +
+      req.body.Task_plan;
+
+    if (req.body.Task_notes !== '' && req.body.Task_notes !== null) {
+      req.body.Task_notes += '\n' + newMessage;
+    } else {
+      req.body.Task_notes = newMessage;
+    }
+  }
+
   if (req.body.Task_notes !== '' && req.body.Task_notes !== null) {
     const taskNoteArr = await TMS.getTaskNotes(taskid);
     if (!taskNoteArr) {
-      return next(
-        new ErrorHandler(
-          'Unable to retrieve any task notes even an empty error',
-          404
-        )
-      );
+      return next(new ErrorHandler('Unable to retrieve any task notes', 404));
     }
     let newTaskArr = [];
     const notesObj = {
@@ -428,6 +458,7 @@ exports.updateTask = catchAsyncError(async (req, res, next) => {
     newTaskArr.push(notesObj);
     req.body.Task_notes = JSON.stringify(newTaskArr);
   }
+  req.body.Task_owner = req.username;
 
   validationFn.deleteEmptyFields(req.body);
 
