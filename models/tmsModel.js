@@ -1,4 +1,4 @@
-const dbConn = require('../config/databaseConfig');
+const dbConn = require("../config/databaseConfig");
 const pool = dbConn.createConnPool();
 
 const tmsModel = {
@@ -7,7 +7,7 @@ const tmsModel = {
     try {
       const query =
         //Need change the query
-        'SELECT * FROM application';
+        "SELECT * FROM application";
       const [results] = await connection.query(query);
       return results;
     } finally {
@@ -19,7 +19,7 @@ const tmsModel = {
     try {
       const query =
         //Need change the query
-        'SELECT * FROM application where App_Acronym=?';
+        "SELECT * FROM application where App_Acronym=?";
       const [results] = await connection.query(query, [appAcronymID]);
       return results;
     } finally {
@@ -31,7 +31,7 @@ const tmsModel = {
     try {
       const query =
         //Need change the query
-        'INSERT INTO application SET ?';
+        "INSERT INTO application SET ?";
       const [results] = await connection.query(query, [appObj]);
       return results;
     } finally {
@@ -43,7 +43,7 @@ const tmsModel = {
     try {
       const query =
         //Need change the query
-        'UPDATE application SET ' + clauses + ' WHERE App_Acronym=?';
+        "UPDATE application SET " + clauses + " WHERE App_Acronym=?";
       const [results] = await connection.query(query, values);
       return results;
     } finally {
@@ -53,7 +53,7 @@ const tmsModel = {
   updateAppFromTask: async (apprnumber, appacronym) => {
     const connection = await pool.promise().getConnection();
     try {
-      const query = 'UPDATE application SET App_Rnumber=? WHERE App_Acronym=?';
+      const query = "UPDATE application SET App_Rnumber=? WHERE App_Acronym=?";
       const [results] = await connection.query(query, [apprnumber, appacronym]);
       return results;
     } finally {
@@ -65,7 +65,7 @@ const tmsModel = {
     try {
       const query =
         //Need change the query
-        'SELECT Plan_MVP_name FROM plan where Plan_app_Acronym=?';
+        "SELECT Plan_MVP_name FROM plan where Plan_app_Acronym=?";
       const [results] = await connection.query(query, appacronym);
       return results;
     } finally {
@@ -77,7 +77,7 @@ const tmsModel = {
     try {
       const query =
         //Need change the query
-        'SELECT * FROM plan where Plan_MVP_name=?';
+        "SELECT * FROM plan where Plan_MVP_name=?";
       const [results] = await connection.query(query, [mvpparams]);
       return results;
     } finally {
@@ -89,7 +89,7 @@ const tmsModel = {
     try {
       const query =
         //Need change the query
-        'insert into plan set ?';
+        "insert into plan set ?";
       const [results] = await connection.query(query, [planObj]);
       return results;
     } finally {
@@ -101,7 +101,7 @@ const tmsModel = {
     try {
       const query =
         //Need change the query
-        'UPDATE plan SET ' + clauses + ' WHERE Plan_MVP_name=?';
+        "UPDATE plan SET " + clauses + " WHERE Plan_MVP_name=?";
       const [results] = await connection.query(query, values);
       return results;
     } finally {
@@ -113,7 +113,7 @@ const tmsModel = {
     try {
       const query =
         //Need change the query
-        'SELECT * FROM task where Task_app_Acronym=?';
+        "SELECT * FROM task where Task_app_Acronym=?";
       const [results] = await connection.query(query, appacronym);
       return results;
     } finally {
@@ -123,7 +123,7 @@ const tmsModel = {
   getTask: async (taskid) => {
     const connection = await pool.promise().getConnection();
     try {
-      const query = 'SELECT * from task where Task_id=?';
+      const query = "SELECT * from task where Task_id=?";
       const [results] = await connection.query(query, taskid);
       return results;
     } finally {
@@ -133,7 +133,7 @@ const tmsModel = {
   getTaskNotes: async (taskid) => {
     const connection = await pool.promise().getConnection();
     try {
-      const query = 'SELECT Task_notes from task where Task_id=?';
+      const query = "SELECT Task_notes from task where Task_id=?";
       const [results] = await connection.query(query, taskid);
       return results;
     } finally {
@@ -143,7 +143,7 @@ const tmsModel = {
   createTask: async (taskObj) => {
     const connection = await pool.promise().getConnection();
     try {
-      const query = 'insert into task set ?';
+      const query = "insert into task set ?";
       const [results] = await connection.query(query, taskObj);
       return results;
     } finally {
@@ -155,8 +155,18 @@ const tmsModel = {
     try {
       const query =
         //Need change the query
-        'UPDATE task SET ' + clauses + ' WHERE Task_id=?';
+        "UPDATE task SET " + clauses + " WHERE Task_id=?";
       const [results] = await connection.query(query, values);
+      return results;
+    } finally {
+      connection.release();
+    }
+  },
+  updateTaskState: async (state, taskid) => {
+    const connection = await pool.promise().getConnection();
+    try {
+      const query = "UPDATE task set Task_state=? WHERE Task_id=?";
+      const [results] = await connection.query(query, [state, taskid]);
       return results;
     } finally {
       connection.release();

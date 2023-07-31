@@ -1,8 +1,8 @@
-const dbConn = require('../config/databaseConfig');
+const dbConn = require("../config/databaseConfig");
 const pool = dbConn.createConnPool();
 // Create and send token and save in cookie
 const checkGroup = async (userid, usergroup) => {
-  const format = '%.' + usergroup + '.%';
+  const format = "%." + usergroup + ".%";
   const connection = await pool.promise().getConnection();
   try {
     const query = `SELECT EXISTS (SELECT 1 FROM user WHERE userid=? AND usergroup LIKE ?) as RESULT`;
