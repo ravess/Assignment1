@@ -402,9 +402,12 @@ exports.updateTask = catchAsyncError(async (req, res, next) => {
       new ErrorHandler('You are not authorised to access this resource', 403)
     );
   }
+  console.log(req.body);
+
   let planIsDiff = false;
   const allowedTaskState = ['open', 'todo', 'doing', 'done', 'closed'];
-  const { taskid } = req.params;
+  const currentState = req.body.Task_state;
+
   if (req.body.Task_newState === 'promote') {
     const currentIndex = allowedTaskState.indexOf(req.body.Task_state);
     if (currentIndex !== -1 && currentIndex < allowedTaskState.length - 1) {
@@ -416,11 +419,11 @@ exports.updateTask = catchAsyncError(async (req, res, next) => {
       if (!result) {
         return next(new ErrorHandler('Task could not be updated', 404));
       }
-      return res.status(200).json({
-        success: true,
-        message: 'Task is updated',
-        data: `${result.affectedRows} row(s) is updated`,
-      });
+      // return res.status(200).json({
+      //   success: true,
+      //   message: 'Task is updated',
+      //   data: `${result.affectedRows} row(s) is updated`,
+      // });
     } else {
       return next(new ErrorHandler('Unable to promote the task', 404));
     }
@@ -437,24 +440,22 @@ exports.updateTask = catchAsyncError(async (req, res, next) => {
       if (!result) {
         return next(new ErrorHandler('Task state could not be updated', 404));
       }
-      return res.status(200).json({
-        success: true,
-        message: 'Task is updated',
-        data: `${result.affectedRows} row(s) is updated`,
-      });
+      // return res.status(200).json({
+      //   success: true,
+      //   message: 'Task is updated',
+      //   data: `${result.affectedRows} row(s) is updated`,
+      // });
     } else {
       return next(new ErrorHandler('Unable to demote the task', 404));
     }
   }
 
-  //This is to tackle the plan if it is an empty string
+  //This is to tackle the plan if it is an empty string (need come back take a look)
   if (req.body.Task_plan === '') {
     const [results] = await TMS.getTask(req.params.taskid);
     const { Task_plan } = results;
     if (Task_plan !== null && req.body.Task_plan === '') {
-      console.log(Task_plan);
       console.log(`plan is different`);
-      console.log(req.body.Task_plan);
       planIsDiff = true;
     }
   }
@@ -486,12 +487,12 @@ exports.updateTask = catchAsyncError(async (req, res, next) => {
   const formattedTimestamp = `${hours}:${minutes}:${seconds}`;
 
   // To track any changes if the task plan did change from database. Associate Task plan/De-associate
-  if (req.body.Task_plan !== '') {
+  if (req.body.Task_plan) {
     const [results] = await TMS.getTask(req.params.taskid);
     const { Task_plan } = results;
     if (req.body.Task_plan === Task_plan) {
       delete req.body.Task_plan;
-    } else {
+    } else if (req.body.Task_plan !== Task_plan) {
       // For Audit Trail formatting to append below task_notes if plan did updated
       const newMessage =
         (req.body.Task_notes ? '\n' : '') +
@@ -500,22 +501,51 @@ exports.updateTask = catchAsyncError(async (req, res, next) => {
         ' has updated the task to associate with ' +
         (req.body.Task_plan ? req.body.Task_plan : '');
 
-      if (req.body.Task_notes !== '') {
+      if (req.body.Task_notes) {
         req.body.Task_notes += newMessage;
       } else {
-        req.body.Task_notes = ' ' + newMessage;
+        req.body.Task_notes = newMessage;
       }
+    }
+  }
+
+  // For Audit Trail formatting to append to task_notes if there is a state transition
+  if (req.body.Task_newState === 'promote') {
+    delete req.body.Task_newState;
+    const newMessage =
+      ' ' +
+      req.username +
+      ' has promoted the task from ' +
+      currentState +
+      ' to ' +
+      req.body.Task_state;
+    if (req.body.Task_notes !== '') {
+      req.body.Task_notes += newMessage;
+    } else {
+      req.body.Task_notes = ' ' + newMessage;
+    }
+  }
+
+  if (req.body.Task_newState === 'demote') {
+    delete req.body.Task_newState;
+    const newMessage =
+      ' ' +
+      req.username +
+      ' has demoted the task from ' +
+      currentState +
+      ' to ' +
+      req.body.Task_state;
+    if (req.body.Task_notes !== '') {
+      req.body.Task_notes += newMessage;
+    } else {
+      req.body.Task_notes = ' ' + newMessage;
     }
   }
 
   // Setting the plan to null if it is an empty string
   if (req.body.Task_plan === '') {
     req.body.Task_plan = null;
-    const newMessage =
-      ' ' +
-      req.username +
-      ' has updated the task and remove it from any plans ' +
-      req.body.Task_plan;
+    const newMessage = req.username + ' has removed the plan from the task.';
 
     if (req.body.Task_notes !== '') {
       req.body.Task_notes += '\n' + newMessage;
