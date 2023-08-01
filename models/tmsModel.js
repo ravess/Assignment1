@@ -39,6 +39,7 @@ const tmsModel = {
     }
   },
   updateApp: async (clauses, values) => {
+    console.log(clauses, values);
     const connection = await pool.promise().getConnection();
     try {
       const query =
