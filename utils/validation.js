@@ -57,7 +57,7 @@ const validationFn = {
       }
     }
   },
-  formatDate: (datestring = null) => {
+  formatDate: (datestring) => {
     if (datestring) {
       const currentDate = new Date(datestring);
       const year = currentDate.getFullYear();

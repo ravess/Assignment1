@@ -109,7 +109,7 @@ exports.updateApp = catchAsyncError(async (req, res, next) => {
     );
   }
   validationFn.deleteEmptyFields(req.body);
-  console.log(req.body);
+
   let clauses = [];
   let values = [];
   for (const property in req.body) {
@@ -226,7 +226,31 @@ exports.updatePlan = catchAsyncError(async (req, res, next) => {
       new ErrorHandler('You are not authorised to access this resource', 403)
     );
   }
+  console.log(req.body);
+
+  const plan = await TMS.getPlan(req.params.planid);
+  if (!plan || plan.length === 0) {
+    return next(new ErrorHandler('Unable to find plan', 404));
+  }
+  const formattedPlan = plan.map((planItem) => ({
+    ...planItem,
+    Plan_startDate: validationFn
+      .formatDate(planItem.Plan_startDate)
+      .slice(0, 10),
+    Plan_endDate: validationFn.formatDate(planItem.Plan_endDate).slice(0, 10),
+  }));
+
+  if (
+    req.body.Plan_startDate === formattedPlan[0].Plan_startDate &&
+    req.body.Plan_endDate === formattedPlan[0].Plan_endDate
+  ) {
+    return next(new ErrorHandler(`You are not changing anything`, 404));
+  }
+
   validationFn.deleteEmptyFields(req.body);
+  if (req.body.length === 0) {
+    return next(new ErrorHandler('You are not updating anything', 403));
+  }
 
   let clauses = [];
   let values = [];
@@ -270,7 +294,6 @@ exports.getAllTasks = catchAsyncError(async (req, res, next) => {
   if (!tasks || tasks.length === 0) {
     return next(new ErrorHandler('Unable to find any tasks', 404));
   }
-  console.log(tasks, 'in get all tasks');
 
   const formattedTasks = tasks.map((task) => {
     const localTime = task.Task_createDate
@@ -382,7 +405,6 @@ exports.createTask = catchAsyncError(async (req, res, next) => {
     req.body.Task_notes = notesArr;
   }
   req.body.Task_notes = JSON.stringify(req.body.Task_notes);
-  console.log(req.body);
 
   const results = await TMS.createTask(req.body);
   if (!results) {
@@ -474,7 +496,7 @@ exports.updateTask = catchAsyncError(async (req, res, next) => {
         (req.body.Task_notes ? '\n' : '') +
         ' ' +
         req.username +
-        ' has updated the task to associate with ' +
+        ' has updated the task to associate with Plan: ' +
         (req.body.Task_plan ? req.body.Task_plan : '');
 
       if (req.body.Task_notes) {
@@ -549,7 +571,7 @@ exports.updateTask = catchAsyncError(async (req, res, next) => {
     req.body.Task_notes = JSON.stringify(newTaskArr);
   }
   req.body.Task_owner = req.username;
-  console.log(req.body, `line 557`);
+
   let clauses = [];
   let values = [];
   for (const property in req.body) {
