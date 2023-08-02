@@ -21,12 +21,8 @@ exports.getAllApps = catchAsyncError(async (req, res, next) => {
   const formattedApps = apps.map((app) => {
     return {
       ...app,
-      App_startDate: app.App_startDate
-        ? app.App_startDate.toISOString().slice(0, 10)
-        : null,
-      App_endDate: app.App_endDate
-        ? app.App_endDate.toISOString().slice(0, 10)
-        : null,
+      App_startDate: validationFn.formatDate(app.App_startDate),
+      App_endDate: validationFn.formatDate(app.App_endDate),
     };
   });
 
@@ -52,12 +48,8 @@ exports.getApp = catchAsyncError(async (req, res, next) => {
   const formattedApp = app.map((app) => {
     return {
       ...app,
-      App_startDate: app.App_startDate
-        ? app.App_startDate.toISOString().slice(0, 10)
-        : null,
-      App_endDate: app.App_endDate
-        ? app.App_endDate.toISOString().slice(0, 10)
-        : null,
+      App_startDate: validationFn.formatDate(app.App_startDate),
+      App_endDate: validationFn.formatDate(app.App_endDate),
     };
   });
 
@@ -179,11 +171,16 @@ exports.getPlan = catchAsyncError(async (req, res, next) => {
   if (!plan || plan.length === 0) {
     return next(new ErrorHandler('Unable to find plan', 404));
   }
+  const formattedPlan = plan.map((planItem) => ({
+    ...planItem,
+    Plan_startDate: validationFn.formatDate(planItem.Plan_startDate),
+    Plan_endDate: validationFn.formatDate(planItem.Plan_endDate),
+  }));
 
   res.status(200).json({
     success: true,
     message: 'Here is the plan details',
-    data: plan,
+    data: formattedPlan,
   });
 });
 
@@ -350,21 +347,13 @@ exports.createTask = catchAsyncError(async (req, res, next) => {
   const taskid = appAcronym + '_' + appRNumber;
 
   //Format the date to yyyy-mm-dd
-  // const currentDate = new Date();
-  // const year = currentDate.getFullYear();
-  // const month = String(currentDate.getMonth() + 1).padStart(2, '0');
-  // const day = String(currentDate.getDate()).padStart(2, '0');
-  // const hours = String(currentDate.getHours()).padStart(2, '0');
-  // const minutes = String(currentDate.getMinutes()).padStart(2, '0');
-  // const seconds = String(currentDate.getSeconds()).padStart(2, '0');
-  // const formattedDate = `${year}-${month}-${day}`;
-  // const formattedTimestamp = `${hours}:${minutes}:${seconds}`;
   const formattedDate = validationFn.formatDate();
   const formattedTimestamp = validationFn.formatTimeStamp();
 
   //Might need to remove for the task plan if there is a body
   validationFn.changeEmptyFieldsToNull(req.body);
 
+  //System autogenerate for task creation.
   req.body.Task_createDate = formattedDate;
   req.body.Task_creator = req.username;
   req.body.Task_state = 'open';
@@ -373,9 +362,12 @@ exports.createTask = catchAsyncError(async (req, res, next) => {
   req.body.Task_app_Acronym = req.params.appacronym;
 
   if (!req.body.Task_name || !req.body.Task_description === null) {
-    return next(new ErrorHandler(`Something is required`));
+    return next(
+      new ErrorHandler(`Pleas ensure you input the name and description in it`)
+    );
   }
 
+  // THe below code snippet is when the task notes is an empty string, it will set it to be an array which than follows to store in the database. Either way it will convert the req.body[Task_notes] into an array of objects.
   req.body.Task_notes = req.body.Task_notes || [];
   if (req.body.Task_notes.length > 0 || Array.isArray(req.body.Task_notes)) {
     const notesArr = [];
@@ -390,6 +382,7 @@ exports.createTask = catchAsyncError(async (req, res, next) => {
     req.body.Task_notes = notesArr;
   }
   req.body.Task_notes = JSON.stringify(req.body.Task_notes);
+  console.log(req.body);
 
   const results = await TMS.createTask(req.body);
   if (!results) {
@@ -436,11 +429,9 @@ exports.updateTask = catchAsyncError(async (req, res, next) => {
     } else {
       return next(new ErrorHandler('Unable to demote the task', 404));
     }
-  } else {
-    return next(new ErrorHandler('Invalid Task_newState', 404));
   }
 
-  //This is to tackle the plan if it is an empty string
+  //This is to tackle the plan if it is an empty string ********** roy need to revisit this logic
   if (req.body.Task_plan === '') {
     const [results] = await TMS.getTask(req.params.taskid);
     const { Task_plan } = results;
@@ -450,12 +441,14 @@ exports.updateTask = catchAsyncError(async (req, res, next) => {
     }
   }
 
+  // This is to check if task plan is Select A Plan and the plan is not different from the database when Select a Plan, this include notes to be empty string as well
   if (req.body.Task_plan === '' && !planIsDiff && req.body.Task_notes === '') {
     return next(
       new ErrorHandler(`You are not updating any of the task details`, 404)
     );
   }
 
+  // This is to check if there is current plan, and if user has change to any other plans, e.g current is Sprint4, and he just click update without editing any of task details.
   if (req.body.Task_plan !== '' && req.body.Task_notes === '') {
     const [results] = await TMS.getTask(req.params.taskid);
     const { Task_plan } = results;
@@ -556,7 +549,7 @@ exports.updateTask = catchAsyncError(async (req, res, next) => {
     req.body.Task_notes = JSON.stringify(newTaskArr);
   }
   req.body.Task_owner = req.username;
-
+  console.log(req.body, `line 557`);
   let clauses = [];
   let values = [];
   for (const property in req.body) {
