@@ -108,8 +108,27 @@ exports.updateApp = catchAsyncError(async (req, res, next) => {
       new ErrorHandler('You are not authorised to access this resource', 403)
     );
   }
-  validationFn.deleteEmptyFields(req.body);
 
+  const app = await TMS.getApp(req.params.appacronym);
+  const formattedApp = app.map((app) => {
+    return {
+      ...app,
+      App_startDate: validationFn.formatDate(app.App_startDate),
+      App_endDate: validationFn.formatDate(app.App_endDate),
+    };
+  });
+
+  for (const property in req.body) {
+    if (req.body[property] === formattedApp[0][property]) {
+      delete req.body[property]; // Delete the property if it's the same
+    }
+  }
+  if (Object.keys(req.body).length === 0) {
+    return next(new ErrorHandler(`You are not updating any details`, 404));
+  }
+
+  validationFn.changeEmptyFieldsToNull(req.body);
+  console.log(req.body);
   let clauses = [];
   let values = [];
   for (const property in req.body) {
@@ -226,7 +245,6 @@ exports.updatePlan = catchAsyncError(async (req, res, next) => {
       new ErrorHandler('You are not authorised to access this resource', 403)
     );
   }
-  console.log(req.body);
 
   const plan = await TMS.getPlan(req.params.planid);
   if (!plan || plan.length === 0) {
@@ -240,16 +258,13 @@ exports.updatePlan = catchAsyncError(async (req, res, next) => {
     Plan_endDate: validationFn.formatDate(planItem.Plan_endDate).slice(0, 10),
   }));
 
-  if (
-    req.body.Plan_startDate === formattedPlan[0].Plan_startDate &&
-    req.body.Plan_endDate === formattedPlan[0].Plan_endDate
-  ) {
-    return next(new ErrorHandler(`You are not changing anything`, 404));
+  for (const property in req.body) {
+    if (req.body[property] === formattedPlan[0][property]) {
+      delete req.body[property]; // Delete the property if it's the same
+    }
   }
-
-  validationFn.deleteEmptyFields(req.body);
-  if (req.body.length === 0) {
-    return next(new ErrorHandler('You are not updating anything', 403));
+  if (Object.keys(req.body).length === 0) {
+    return next(new ErrorHandler(`You are not updating any details`, 404));
   }
 
   let clauses = [];
@@ -302,14 +317,15 @@ exports.getAllTasks = catchAsyncError(async (req, res, next) => {
           minute: '2-digit',
           second: '2-digit',
         })
-      : null;
+      : '';
     return {
       ...task,
       Task_notes: JSON.parse(task.Task_notes),
       Task_createDate: task.Task_createDate
         ? task.Task_createDate.toISOString().slice(0, 10)
-        : null,
+        : '',
       Task_timestamp: localTime,
+      Task_plan: task.Task_plan ? task.Task_plan : '',
     };
   });
 
@@ -338,14 +354,15 @@ exports.getTask = catchAsyncError(async (req, res, next) => {
           minute: '2-digit',
           second: '2-digit',
         })
-      : null;
+      : '';
     return {
       ...task,
       Task_notes: JSON.parse(task.Task_notes),
       Task_createDate: task.Task_createDate
         ? task.Task_createDate.toISOString().slice(0, 10)
-        : null,
+        : '',
       Task_timestamp: localTime,
+      Task_plan: task.Task_plan ? task.Task_plan : '',
     };
   });
 
