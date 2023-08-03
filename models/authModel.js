@@ -16,7 +16,7 @@ const AuthModel = {
   getUser: async (username) => {
     const connection = await pool.promise().getConnection();
     try {
-      const query = "SELECT userid, userisActive FROM user where username=?";
+      const query = "SELECT username, userisActive FROM user where username=?";
       const [results] = await connection.query(query, [username]);
       return results;
     } finally {

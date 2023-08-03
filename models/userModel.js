@@ -2,12 +2,12 @@ const dbConn = require("../config/databaseConfig");
 const pool = dbConn.createConnPool();
 
 const UserModel = {
-  getProfile: async (userid) => {
+  getProfile: async (username) => {
     const connection = await pool.promise().getConnection();
     try {
       const query =
-        "SELECT usergroup, username, userisActive, useremail FROM user where userid=?";
-      const [results] = await connection.query(query, [userid]);
+        "SELECT usergroup, username, userisActive, useremail FROM user where username=?";
+      const [results] = await connection.query(query, [username]);
       return results;
     } finally {
       connection.release();
@@ -16,7 +16,7 @@ const UserModel = {
   updateUser: async (clauses, values) => {
     const connection = await pool.promise().getConnection();
     try {
-      const query = `UPDATE user SET ${clauses} WHERE userid=?`;
+      const query = `UPDATE user SET ${clauses} WHERE username=?`;
       const [results] = await connection.query(query, values);
       return results;
     } finally {

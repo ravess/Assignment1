@@ -56,7 +56,10 @@ exports.isUserLoggedIn = catchAsyncError(async (req, res, next) => {
   const decoded = jwt.verify(token, process.env.JWT_SECRET);
   req.username = decoded.username;
   const userInfo = await Auth.getUser(req.username);
-  req.userid = userInfo[0].userid;
+  console.log(userInfo[0].username, `coming into isUserloggedIn`);
+  if (req.username !== userInfo[0].username) {
+    return next(new ErrorHandler("Invalid User", 404));
+  }
 
   next();
 });
@@ -73,13 +76,14 @@ exports.logout = catchAsyncError(async (req, res, next) => {
 });
 
 exports.checkgroup = catchAsyncError(async (req, res, next) => {
-  const results = await checkGroup(req.userid, "admin");
+  const results = await checkGroup(req.username, req.body.usergroup);
   if (!results[0].RESULT) {
     return next(
       new ErrorHandler("You are not authorised to access this resource", 403)
     );
   }
-  res.status(200).json({
+
+  return res.status(200).json({
     success: true,
     data: results[0].RESULT,
   });

@@ -21,6 +21,7 @@ router.use(isUserLoggedIn);
 
 router.route("/apps").get(getAllApps);
 router.route("/apps/:appacronym").get(getApp);
+
 router.route("/apps/:appacronym/edit").put(updateApp);
 router.route("/apps/create").post(createApp);
 router.route("/apps/:appacronym/tasks").get(getAllTasks);

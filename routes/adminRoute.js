@@ -12,10 +12,10 @@ const {
 
 router.use(isUserLoggedIn);
 
-router.route("/admin/users").get(getAllUsers);
-router.route("/admin/groups").get(getGroups);
+router.route("/admin/users").post(getAllUsers);
+router.route("/admin/groups").post(getGroups);
 router.route("/admin/groups/create").post(createGroup);
-router.route("/admin/user/:userid").get(getUser);
+router.route("/admin/user/:userid").post(getUser);
 router.route("/admin/users/create").post(createUser);
 router.route("/admin/users/:userid/edit").put(updateUser);
 
