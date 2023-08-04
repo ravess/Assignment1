@@ -152,12 +152,6 @@ exports.updateApp = catchAsyncError(async (req, res, next) => {
 
 // For Plan
 exports.getAllPlans = catchAsyncError(async (req, res, next) => {
-  // const authorised = await checkGroup(req.username, req.body.usergroup);
-  // if (!authorised[0].RESULT) {
-  //   return next(
-  //     new ErrorHandler("You are not authorised to access this resource", 403)
-  //   );
-  // }
   const plans = await TMS.getAllPlans(req.params.appacronym);
   if (!plans || plans.length === 0) {
     return next(new ErrorHandler("Unable to find any plans", 404));
@@ -170,13 +164,6 @@ exports.getAllPlans = catchAsyncError(async (req, res, next) => {
 });
 
 exports.getPlan = catchAsyncError(async (req, res, next) => {
-  // const authorised = await checkGroup(req.username, req.body.usergroup);
-  // if (!authorised[0].RESULT) {
-  //   return next(
-  //     new ErrorHandler("You are not authorised to access this resource", 403)
-  //   );
-  // }
-
   const plan = await TMS.getPlan(req.params.planid);
   if (!plan || plan.length === 0) {
     return next(new ErrorHandler("Unable to find plan", 404));
@@ -322,13 +309,6 @@ exports.getAllTasks = catchAsyncError(async (req, res, next) => {
   });
 });
 exports.getTask = catchAsyncError(async (req, res, next) => {
-  // const authorised = await checkGroup(req.username, req.body.usergroup);
-  // if (!authorised[0].RESULT) {
-  //   return next(
-  //     new ErrorHandler("You are not authorised to access this resource", 403)
-  //   );
-  // }
-
   const task = await TMS.getTask(req.params.taskid);
   if (!task || task.length === 0) {
     return next(new ErrorHandler("Unable to find task", 404));
@@ -438,6 +418,12 @@ exports.updateTask = catchAsyncError(async (req, res, next) => {
   }
   delete req.body.usergroup;
 
+  if (req.body.Task_plan === "" && !planIsDiff && req.body.Task_notes === "") {
+    return next(
+      new ErrorHandler(`You are not updating any of the task details`, 404)
+    );
+  }
+
   let planIsDiff = false;
   const allowedTaskState = ["open", "todo", "doing", "done", "closed"];
   const currentState = req.body.Task_state;
@@ -464,15 +450,18 @@ exports.updateTask = catchAsyncError(async (req, res, next) => {
     if (Task_plan !== null && req.body.Task_plan === "") {
       console.log(`plan is different`);
       planIsDiff = true;
+      req.body.Task_plan = null;
+      const newMessage = req.username + " has removed the plan from the task.";
+
+      if (req.body.Task_notes !== "") {
+        req.body.Task_notes += "\n" + newMessage;
+      } else {
+        req.body.Task_notes = newMessage;
+      }
     }
   }
 
   // This is to check if task plan is Select A Plan and the plan is not different from the database when Select a Plan, this include notes to be empty string as well
-  if (req.body.Task_plan === "" && !planIsDiff && req.body.Task_notes === "") {
-    return next(
-      new ErrorHandler(`You are not updating any of the task details`, 404)
-    );
-  }
 
   // This is to check if there is current plan, and if user has change to any other plans, e.g current is Sprint4, and he just click update without editing any of task details.
   if (req.body.Task_plan !== "" && req.body.Task_notes === "") {
@@ -546,16 +535,16 @@ exports.updateTask = catchAsyncError(async (req, res, next) => {
   }
 
   // Setting the plan to null if it is an empty string
-  if (req.body.Task_plan === "") {
-    req.body.Task_plan = null;
-    const newMessage = req.username + " has removed the plan from the task.";
+  // if (req.body.Task_plan === "") {
+  //   req.body.Task_plan = null;
+  //   const newMessage = req.username + " has removed the plan from the task.";
 
-    if (req.body.Task_notes !== "") {
-      req.body.Task_notes += "\n" + newMessage;
-    } else {
-      req.body.Task_notes = newMessage;
-    }
-  }
+  //   if (req.body.Task_notes !== "") {
+  //     req.body.Task_notes += "\n" + newMessage;
+  //   } else {
+  //     req.body.Task_notes = newMessage;
+  //   }
+  // }
 
   if (req.body.Task_notes !== "") {
     const taskNoteArr = await TMS.getTaskNotes(req.params.taskid);

@@ -125,6 +125,7 @@ exports.updateUser = catchAsyncError(async (req, res, next) => {
 
 //Get all Existing groups
 exports.getGroups = catchAsyncError(async (req, res, next) => {
+  console.log(`are you in here?`);
   const authorised = await checkGroup(req.username, req.body.usergroup);
   if (!authorised[0].RESULT) {
     return next(
