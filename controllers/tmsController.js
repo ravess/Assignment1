@@ -104,7 +104,7 @@ exports.createApp = catchAsyncError(async (req, res, next) => {
   const authorised = await checkGroup(req.username, req.body.usergroup);
   if (!authorised[0].RESULT) {
     return next(
-      new ErrorHandler('You are not authorised to access this resource', 403)
+      new ErrorHandler('You are not authorised to access this resource', 401)
     );
   }
   delete req.body.usergroup;
@@ -147,7 +147,7 @@ exports.updateApp = catchAsyncError(async (req, res, next) => {
   const authorised = await checkGroup(req.username, req.body.usergroup);
   if (!authorised[0].RESULT) {
     return next(
-      new ErrorHandler('You are not authorised to access this resource', 403)
+      new ErrorHandler('You are not authorised to access this resource', 401)
     );
   }
   delete req.body.usergroup;
@@ -237,7 +237,7 @@ exports.createPlan = catchAsyncError(async (req, res, next) => {
   const authorised = await checkGroup(req.username, req.body.usergroup);
   if (!authorised[0].RESULT) {
     return next(
-      new ErrorHandler('You are not authorised to access this resource', 403)
+      new ErrorHandler('You are not authorised to access this resource', 401)
     );
   }
   delete req.body.usergroup;
@@ -273,7 +273,7 @@ exports.updatePlan = catchAsyncError(async (req, res, next) => {
   const authorised = await checkGroup(req.username, req.body.usergroup);
   if (!authorised[0].RESULT) {
     return next(
-      new ErrorHandler('You are not authorised to access this resource', 403)
+      new ErrorHandler('You are not authorised to access this resource', 401)
     );
   }
   delete req.body.usergroup;
@@ -395,7 +395,7 @@ exports.createTask = catchAsyncError(async (req, res, next) => {
   const authorised = await checkGroup(req.username, req.body.usergroup);
   if (!authorised[0].RESULT) {
     return next(
-      new ErrorHandler('You are not authorised to access this resource', 403)
+      new ErrorHandler('You are not authorised to access this resource', 401)
     );
   }
   delete req.body.usergroup;
@@ -465,7 +465,7 @@ exports.updateTask = catchAsyncError(async (req, res, next) => {
   const authorised = await checkGroup(req.username, req.body.usergroup);
   if (!authorised[0].RESULT) {
     return next(
-      new ErrorHandler('You are not authorised to access this resource', 403)
+      new ErrorHandler('You are not authorised to access this resource', 401)
     );
   }
   delete req.body.usergroup;

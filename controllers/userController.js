@@ -7,7 +7,7 @@ const bcrypt = require('bcryptjs');
 exports.getProfile = catchAsyncError(async (req, res, next) => {
   const user = await User.getProfile(req.username);
   if (!user) {
-    return next(new ErrorHandler('User not found', 404));
+    return next(new ErrorHandler('User not found', 403));
   }
 
   res.status(200).json({
@@ -32,7 +32,7 @@ exports.updateUser = catchAsyncError(async (req, res, next) => {
       property === 'userisActive' ||
       property === 'username'
     ) {
-      res.status(400).json({
+      res.status(404).json({
         success: false,
         meesage: 'Not Allowed to change.',
       });

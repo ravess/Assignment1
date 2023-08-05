@@ -10,7 +10,7 @@ exports.getAllUsers = catchAsyncError(async (req, res, next) => {
   const authorised = await checkGroup(req.username, req.body.usergroup);
   if (!authorised[0].RESULT) {
     return next(
-      new ErrorHandler('You are not authorised to access this resource', 403)
+      new ErrorHandler('You are not authorised to access this resource', 401)
     );
   }
   const users = await Admin.getAllUsers();
@@ -28,7 +28,7 @@ exports.getUser = catchAsyncError(async (req, res, next) => {
   const authorised = await checkGroup(req.username, req.body.usergroup);
   if (!authorised[0].RESULT) {
     return next(
-      new ErrorHandler('You are not authorised to access this resource', 403)
+      new ErrorHandler('You are not authorised to access this resource', 401)
     );
   }
   const user = await Admin.getUser(req.params.userid);
@@ -47,7 +47,7 @@ exports.createUser = catchAsyncError(async (req, res, next) => {
   const authorised = await checkGroup(req.username, req.body.usergroup);
   if (!authorised[0].RESULT) {
     return next(
-      new ErrorHandler('You are not authorised to access this resource', 403)
+      new ErrorHandler('You are not authorised to access this resource', 401)
     );
   }
   validationFn.deleteEmptyFields(req.body);
@@ -86,7 +86,7 @@ exports.updateUser = catchAsyncError(async (req, res, next) => {
   const authorised = await checkGroup(req.username, req.body.usergroup);
   if (!authorised[0].RESULT) {
     return next(
-      new ErrorHandler('You are not authorised to access this resource', 403)
+      new ErrorHandler('You are not authorised to access this resource', 401)
     );
   }
   validationFn.deleteEmptyFields(req.body);
@@ -129,7 +129,7 @@ exports.getGroups = catchAsyncError(async (req, res, next) => {
   const authorised = await checkGroup(req.username, req.body.usergroup);
   if (!authorised[0].RESULT) {
     return next(
-      new ErrorHandler('You are not authorised to access this resource', 403)
+      new ErrorHandler('You are not authorised to access this resource', 401)
     );
   }
   const groups = await Admin.getGroups();
@@ -146,7 +146,7 @@ exports.createGroup = catchAsyncError(async (req, res, next) => {
   const authorised = await checkGroup(req.username, req.body.usergroup);
   if (!authorised[0].RESULT) {
     return next(
-      new ErrorHandler('You are not authorised to access this resource', 403)
+      new ErrorHandler('You are not authorised to access this resource', 401)
     );
   }
   const { usergroups } = req.body;
