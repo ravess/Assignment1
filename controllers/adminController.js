@@ -53,7 +53,7 @@ exports.createUser = catchAsyncError(async (req, res, next) => {
   validationFn.deleteEmptyFields(req.body);
   validationFn.validatePassword(req.body.userpassword);
   // Need to amend some logic here before sending into mysql statement****
-  const { username, useremail, userpassword, usergroup, userisActive } =
+  const { username, useremail, userpassword, usergroups, userisActive } =
     req.body;
 
   if (!username || !userpassword || userisActive === null) {
@@ -67,7 +67,7 @@ exports.createUser = catchAsyncError(async (req, res, next) => {
     username,
     hashedpassword,
     useremail,
-    usergroup,
+    usergroups,
     userisActive
   );
   if (!results) {
@@ -149,8 +149,8 @@ exports.createGroup = catchAsyncError(async (req, res, next) => {
       new ErrorHandler('You are not authorised to access this resource', 403)
     );
   }
-  const { usergroup } = req.body;
-  const result = await Admin.createGroup(usergroup);
+  const { usergroups } = req.body;
+  const result = await Admin.createGroup(usergroups);
   if (!result) {
     return next(new ErrorHandler('Groups could not be added', 404));
   }
