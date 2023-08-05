@@ -27,19 +27,71 @@ exports.getAllApps = catchAsyncError(async (req, res, next) => {
   });
 });
 
+// exports.getApp = catchAsyncError(async (req, res, next) => {
+//   const app = await TMS.getApp(req.params.appacronym);
+//   if (!app || app.length === 0) {
+//     return next(new ErrorHandler('Unable to find app', 404));
+//   }
+
+//   const formattedApp = app.map((app) => {
+//     return {
+//       ...app,
+//       App_startDate: validationFn.formatDate(app.App_startDate),
+//       App_endDate: validationFn.formatDate(app.App_endDate),
+//     };
+//   });
+
+//   console.log(formattedApp);
+
+//   res.status(200).json({
+//     success: true,
+//     message: 'Here is the app details',
+//     data: formattedApp,
+//   });
+// });
+
 exports.getApp = catchAsyncError(async (req, res, next) => {
   const app = await TMS.getApp(req.params.appacronym);
   if (!app || app.length === 0) {
     return next(new ErrorHandler('Unable to find app', 404));
   }
 
-  const formattedApp = app.map((app) => {
-    return {
-      ...app,
-      App_startDate: validationFn.formatDate(app.App_startDate),
-      App_endDate: validationFn.formatDate(app.App_endDate),
-    };
-  });
+  const formattedApp = await Promise.all(
+    app.map(async (app) => {
+      const [App_permit_Open] = await checkGroup(
+        req.username,
+        app.App_permit_Open
+      );
+      const [App_permit_toDoList] = await checkGroup(
+        req.username,
+        app.App_permit_toDoList
+      );
+      const [App_permit_Doing] = await checkGroup(
+        req.username,
+        app.App_permit_Doing
+      );
+      const [App_permit_Done] = await checkGroup(
+        req.username,
+        app.App_permit_Done
+      );
+      const isApp_permit_Open = !!App_permit_Open.RESULT;
+      const isApp_permit_toDoList = !!App_permit_toDoList.RESULT;
+      const isApp_permit_Doing = !!App_permit_Doing.RESULT;
+      const isApp_permit_Done = !!App_permit_Done.RESULT;
+
+      return {
+        ...app,
+        App_startDate: validationFn.formatDate(app.App_startDate),
+        App_endDate: validationFn.formatDate(app.App_endDate),
+        App_permissions: {
+          App_permit_Open: isApp_permit_Open,
+          App_permit_toDoList: isApp_permit_toDoList,
+          App_permit_Doing: isApp_permit_Doing,
+          App_permit_Done: isApp_permit_Done,
+        },
+      };
+    })
+  );
 
   res.status(200).json({
     success: true,
