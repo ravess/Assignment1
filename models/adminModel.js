@@ -56,16 +56,16 @@ const AdminModel = {
       connection.release();
     }
   },
-  getGroups: async () => {
-    const connection = await pool.promise().getConnection();
-    try {
-      const query = 'SELECT * FROM nodelogin.groups';
-      const [results] = await connection.query(query);
-      return results;
-    } finally {
-      connection.release();
-    }
-  },
+  // getGroups: async () => {
+  //   const connection = await pool.promise().getConnection();
+  //   try {
+  //     const query = 'SELECT * FROM nodelogin.groups';
+  //     const [results] = await connection.query(query);
+  //     return results;
+  //   } finally {
+  //     connection.release();
+  //   }
+  // },
   createGroup: async (usergroups) => {
     const connection = await pool.promise().getConnection();
     try {

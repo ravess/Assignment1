@@ -56,3 +56,15 @@ exports.updateUser = catchAsyncError(async (req, res, next) => {
     data: `${results.affectedRows} row(s) is updated`,
   });
 });
+
+exports.getGroups = catchAsyncError(async (req, res, next) => {
+  const groups = await User.getGroups();
+  if (!groups || groups.length === 0) {
+    return next(new ErrorHandler('Unable to find any groups', 404));
+  }
+  res.status(200).json({
+    success: true,
+    results: groups.length,
+    data: groups,
+  });
+});

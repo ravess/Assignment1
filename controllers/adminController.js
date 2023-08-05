@@ -89,6 +89,7 @@ exports.updateUser = catchAsyncError(async (req, res, next) => {
       new ErrorHandler('You are not authorised to access this resource', 401)
     );
   }
+  delete req.body.usergroup;
   validationFn.deleteEmptyFields(req.body);
   if (req.body.userpassword) {
     await validationFn.validatePassword(req.body.userpassword);
@@ -125,23 +126,23 @@ exports.updateUser = catchAsyncError(async (req, res, next) => {
 });
 
 //Get all Existing groups
-exports.getGroups = catchAsyncError(async (req, res, next) => {
-  const authorised = await checkGroup(req.username, req.body.usergroup);
-  if (!authorised[0].RESULT) {
-    return next(
-      new ErrorHandler('You are not authorised to access this resource', 401)
-    );
-  }
-  const groups = await Admin.getGroups();
-  if (!groups || groups.length === 0) {
-    return next(new ErrorHandler('Unable to find any groups', 404));
-  }
-  res.status(200).json({
-    success: true,
-    results: groups.length,
-    data: groups,
-  });
-});
+// exports.getGroups = catchAsyncError(async (req, res, next) => {
+//   const authorised = await checkGroup(req.username, req.body.usergroup);
+//   if (!authorised[0].RESULT) {
+//     return next(
+//       new ErrorHandler('You are not authorised to access this resource', 401)
+//     );
+//   }
+//   const groups = await Admin.getGroups();
+//   if (!groups || groups.length === 0) {
+//     return next(new ErrorHandler('Unable to find any groups', 404));
+//   }
+//   res.status(200).json({
+//     success: true,
+//     results: groups.length,
+//     data: groups,
+//   });
+// });
 exports.createGroup = catchAsyncError(async (req, res, next) => {
   const authorised = await checkGroup(req.username, req.body.usergroup);
   if (!authorised[0].RESULT) {
