@@ -203,7 +203,6 @@ exports.updateApp = catchAsyncError(async (req, res, next) => {
   });
 });
 
-// For Plan
 exports.getAllPlans = catchAsyncError(async (req, res, next) => {
   const plans = await TMS.getAllPlans(req.params.appacronym);
   if (!plans || plans.length === 0) {
@@ -244,11 +243,10 @@ exports.createPlan = catchAsyncError(async (req, res, next) => {
   delete req.body.usergroup;
 
   validationFn.changeEmptyFieldsToNull(req.body);
-  // validationFn.removewhitespaces(req.body);
+
   req.body.Plan_app_Acronym = req.params.appacronym;
 
-  // Need to amend some logic here before sending into mysql statement****
-
+  // Backend validation that plan cannot be empty string before sending into
   if (req.body.Plan_MVP_name === null) {
     return next(new ErrorHandler(`Name is required`, 404));
   }
@@ -708,6 +706,48 @@ exports.updateTask = catchAsyncError(async (req, res, next) => {
 
   if (!results) {
     return next(new ErrorHandler('Task could not be updated', 404));
+  }
+
+  // For the email to trigger nodemailer after successfull promotion to done
+  if (currentState === 'doing' && req.body.Task_state === 'done' && results) {
+    // const message = `${req.username} has completed the task and require your approval/rejection to check.`;
+    // const plEmail = await TMS.getPLEmail('pl');
+    // try {
+    //   await Promise.all()
+    //   await sendEmail({
+    //     email: plEmail.map((user) => user.useremail),
+    //     subject: `${req.username} promoted the Task from ${currentState} to ${req.body.Task_state}`,
+    //     message,
+    //   });
+    // } catch (error) {
+    //   if (error) {
+    //     return next(new ErrorHandler(`Email not able to fire out.`, 404));
+    //   }
+    // }
+    const message = `${req.username} has completed the task and requires your approval/rejection to check.`;
+    const plEmail = await TMS.getPLEmail('pl');
+
+    try {
+      // Send emails to multiple recipients asynchronously
+      await Promise.all(
+        plEmail.map(async (user) => {
+          try {
+            await sendEmail({
+              email: user.useremail,
+              subject: `${req.username} promoted the Task from ${currentState} to ${req.body.Task_state}`,
+              message,
+            });
+          } catch (error) {
+            // Handle errors for individual emails, if needed
+            console.error(`Error sending email to ${user.useremail}:`, error);
+          }
+        })
+      );
+    } catch (error) {
+      // Handle any errors that occurred during the sending process
+      console.error('Error sending emails:', error);
+      return next(new ErrorHandler(`Email not able to fire out.`, 404));
+    }
   }
   res.status(200).json({
     success: true,

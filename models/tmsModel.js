@@ -183,6 +183,17 @@ const tmsModel = {
       connection.release();
     }
   },
+  getPLEmail: async (usergroups) => {
+    const format = '%.' + usergroups + '.%';
+    const connection = await pool.promise().getConnection();
+    try {
+      const query = 'SELECT useremail FROM user WHERE usergroups LIKE ?';
+      const [results] = await connection.query(query, [format]);
+      return results;
+    } finally {
+      connection.release();
+    }
+  },
 };
 
 module.exports = tmsModel;
