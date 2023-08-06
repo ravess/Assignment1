@@ -3,6 +3,7 @@ const validationFn = require('../utils/validation');
 const TMS = require('../models/tmsModel');
 const checkGroup = require('../utils/checkGroup');
 const ErrorHandler = require('../utils/errorHandler');
+const sendEmail = require('../utils/sendEmail');
 
 // For App
 exports.getAllApps = catchAsyncError(async (req, res, next) => {
@@ -331,6 +332,27 @@ exports.updatePlan = catchAsyncError(async (req, res, next) => {
 
 // For Task
 exports.getAllTasks = catchAsyncError(async (req, res, next) => {
+  const [userGroupFromPermit] = await TMS.getAppPermit(req.params.appacronym);
+  const [App_permit_Open] = await checkGroup(
+    req.username,
+    userGroupFromPermit.App_permit_Open
+  );
+  const [App_permit_toDoList] = await checkGroup(
+    req.username,
+    userGroupFromPermit.App_permit_toDoList
+  );
+  const [App_permit_Doing] = await checkGroup(
+    req.username,
+    userGroupFromPermit.App_permit_Doing
+  );
+  const [App_permit_Done] = await checkGroup(
+    req.username,
+    userGroupFromPermit.App_permit_Done
+  );
+  const isApp_permit_Open = !!App_permit_Open.RESULT;
+  const isApp_permit_toDoList = !!App_permit_toDoList.RESULT;
+  const isApp_permit_Doing = !!App_permit_Doing.RESULT;
+  const isApp_permit_Done = !!App_permit_Done.RESULT;
   const tasks = await TMS.getAllTasks(req.params.appacronym);
   if (!tasks || tasks.length === 0) {
     return next(new ErrorHandler('Unable to find any tasks', 404));
@@ -351,6 +373,12 @@ exports.getAllTasks = catchAsyncError(async (req, res, next) => {
         : '',
       Task_timestamp: localTime,
       Task_plan: task.Task_plan ? task.Task_plan : '',
+      App_permissions: {
+        App_permit_Open: isApp_permit_Open,
+        App_permit_toDoList: isApp_permit_toDoList,
+        App_permit_Doing: isApp_permit_Doing,
+        App_permit_Done: isApp_permit_Done,
+      },
     };
   });
 
@@ -361,6 +389,28 @@ exports.getAllTasks = catchAsyncError(async (req, res, next) => {
   });
 });
 exports.getTask = catchAsyncError(async (req, res, next) => {
+  const [userGroupFromPermit] = await TMS.getAppPermit(req.params.appacronym);
+  const [App_permit_Open] = await checkGroup(
+    req.username,
+    userGroupFromPermit.App_permit_Open
+  );
+  const [App_permit_toDoList] = await checkGroup(
+    req.username,
+    userGroupFromPermit.App_permit_toDoList
+  );
+  const [App_permit_Doing] = await checkGroup(
+    req.username,
+    userGroupFromPermit.App_permit_Doing
+  );
+  const [App_permit_Done] = await checkGroup(
+    req.username,
+    userGroupFromPermit.App_permit_Done
+  );
+  const isApp_permit_Open = !!App_permit_Open.RESULT;
+  const isApp_permit_toDoList = !!App_permit_toDoList.RESULT;
+  const isApp_permit_Doing = !!App_permit_Doing.RESULT;
+  const isApp_permit_Done = !!App_permit_Done.RESULT;
+
   const task = await TMS.getTask(req.params.taskid);
   if (!task || task.length === 0) {
     return next(new ErrorHandler('Unable to find task', 404));
@@ -381,6 +431,12 @@ exports.getTask = catchAsyncError(async (req, res, next) => {
         : '',
       Task_timestamp: localTime,
       Task_plan: task.Task_plan ? task.Task_plan : '',
+      App_permissions: {
+        App_permit_Open: isApp_permit_Open,
+        App_permit_toDoList: isApp_permit_toDoList,
+        App_permit_Doing: isApp_permit_Doing,
+        App_permit_Done: isApp_permit_Done,
+      },
     };
   });
 
@@ -462,6 +518,17 @@ exports.createTask = catchAsyncError(async (req, res, next) => {
 });
 
 exports.updateTask = catchAsyncError(async (req, res, next) => {
+  const [userGroupFromPermit] = await TMS.getAppPermit(req.params.appacronym);
+  const searchValue = req.body.Task_state;
+  let findUserGroup = null;
+
+  Object.keys(userGroupFromPermit).forEach((key) => {
+    if (key.split('_')[2].toLowerCase() === searchValue) {
+      findUserGroup = userGroupFromPermit[key];
+    }
+  });
+  req.body.usergroup = findUserGroup;
+
   const authorised = await checkGroup(req.username, req.body.usergroup);
   if (!authorised[0].RESULT) {
     return next(
@@ -471,7 +538,7 @@ exports.updateTask = catchAsyncError(async (req, res, next) => {
   delete req.body.usergroup;
 
   let planIsDiff = false;
-  const allowedTaskState = ['open', 'todo', 'doing', 'done', 'closed'];
+  const allowedTaskState = ['open', 'todolist', 'doing', 'done', 'closed'];
   const currentState = req.body.Task_state;
   const currentIndex = allowedTaskState.indexOf(req.body.Task_state);
 
@@ -616,7 +683,6 @@ exports.updateTask = catchAsyncError(async (req, res, next) => {
   }
   req.body.Task_owner = req.username;
   validationFn.changeEmptyFieldsToNull(req.body);
-  console.log(req.body);
   let clauses = [];
   let values = [];
   for (const property in req.body) {

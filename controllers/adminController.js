@@ -82,7 +82,6 @@ exports.createUser = catchAsyncError(async (req, res, next) => {
 });
 
 exports.updateUser = catchAsyncError(async (req, res, next) => {
-  console.log(req.body);
   const authorised = await checkGroup(req.username, req.body.usergroup);
   if (!authorised[0].RESULT) {
     return next(

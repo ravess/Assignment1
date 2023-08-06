@@ -26,6 +26,17 @@ const tmsModel = {
       connection.release();
     }
   },
+  getAppPermit: async (appAcronymID) => {
+    const connection = await pool.promise().getConnection();
+    try {
+      const query =
+        'SELECT App_permit_Open, App_permit_toDoList, App_permit_Doing, App_permit_Done FROM application where App_Acronym=?';
+      const [results] = await connection.query(query, [appAcronymID]);
+      return results;
+    } finally {
+      connection.release();
+    }
+  },
   createApp: async (appObj) => {
     const connection = await pool.promise().getConnection();
     try {

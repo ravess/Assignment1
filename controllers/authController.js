@@ -31,6 +31,10 @@ exports.loginUser = catchAsyncError(async (req, res, next) => {
   }
   // Check if user is disabled
   if (!user[0].userisActive) {
+    res.cookie('token', 'none', {
+      expires: new Date(0),
+      httpOnly: true,
+    });
     return next(new ErrorHandler('User is disabled', 403));
   }
   sendToken(user, 200, res);
@@ -60,6 +64,10 @@ exports.isUserLoggedIn = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler('Invalid User', 403));
   }
   if (!userInfo[0].userisActive) {
+    res.cookie('token', 'none', {
+      expires: new Date(Date.now()),
+      httpOnly: true,
+    });
     return next(new ErrorHandler('User is disabled', 403));
   }
 
