@@ -149,6 +149,7 @@ exports.createGroup = catchAsyncError(async (req, res, next) => {
       new ErrorHandler('You are not authorised to access this resource', 401)
     );
   }
+  delete req.body.usergroup;
   const { usergroups } = req.body;
   const result = await Admin.createGroup(usergroups);
   if (!result) {

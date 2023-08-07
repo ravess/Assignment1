@@ -30,7 +30,7 @@ const tmsModel = {
     const connection = await pool.promise().getConnection();
     try {
       const query =
-        'SELECT App_permit_Open, App_permit_toDoList, App_permit_Doing, App_permit_Done FROM application where App_Acronym=?';
+        'SELECT App_permit_Open, App_permit_toDoList, App_permit_Doing, App_permit_Done, App_permit_Create FROM application where App_Acronym=?';
       const [results] = await connection.query(query, [appAcronymID]);
       return results;
     } finally {
@@ -125,6 +125,7 @@ const tmsModel = {
       const query =
         //Need change the query
         'SELECT * FROM task where Task_app_Acronym=?';
+
       const [results] = await connection.query(query, appacronym);
       return results;
     } finally {
