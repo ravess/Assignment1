@@ -248,7 +248,7 @@ exports.createPlan = catchAsyncError(async (req, res, next) => {
   delete req.body.usergroup;
 
   validationFn.changeEmptyFieldsToNull(req.body);
-
+  console.log(req.body);
   req.body.Plan_app_Acronym = req.params.appacronym;
 
   // Backend validation that plan cannot be empty string before sending into
@@ -590,12 +590,18 @@ exports.updateTask = catchAsyncError(async (req, res, next) => {
       }
     }
   }
-  if (req.body.Task_plan === '' && !planIsDiff && req.body.Task_notes === '') {
+
+  if (
+    req.body.Task_plan === '' &&
+    !planIsDiff &&
+    req.body.Task_notes === '' &&
+    !req.body.Task_newState
+  ) {
     return next(
       new ErrorHandler(`You are not updating any of the task details`, 404)
     );
   }
-
+  console.log(req.body);
   // This is to check if task plan is Select A Plan and the plan is not different from the database when Select a Plan, this include notes to be empty string as well
 
   // This is to check if there is current plan, and if user has change to any other plans, e.g current is Sprint4, and he just click update without editing any of task details.
