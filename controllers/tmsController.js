@@ -248,7 +248,6 @@ exports.createPlan = catchAsyncError(async (req, res, next) => {
   delete req.body.usergroup;
 
   validationFn.changeEmptyFieldsToNull(req.body);
-  console.log(req.body);
   req.body.Plan_app_Acronym = req.params.appacronym;
 
   // Backend validation that plan cannot be empty string before sending into
@@ -538,15 +537,20 @@ exports.updateTask = catchAsyncError(async (req, res, next) => {
   const [userGroupFromPermit] = await TMS.getAppPermit(req.params.appacronym);
   const [results] = await TMS.getTask(req.params.taskid);
   const { Task_plan } = results;
-  const [checkCurrentState] = await TMS.getTask(req.params.taskid);
+  const [dbCurrentState] = await TMS.getTask(req.params.taskid);
   const searchValue = req.body.Task_state;
   const allowedTaskState = ["open", "todolist", "doing", "done", "closed"];
   const currentState = req.body.Task_state;
+  const currentPlan = req.body.Task_plan;
+  let currentNotes = req.body.Task_notes;
   const currentIndex = allowedTaskState.indexOf(req.body.Task_state);
+  const promotedState = allowedTaskState[currentIndex + 1];
+  const demotedState = allowedTaskState[currentIndex - 1];
   const formattedDate = validationFn.formatDate();
   const formattedTimestamp = validationFn.formatTimeStamp();
   let findUserGroup = null;
   let planIsDiff = false;
+  let newMessage = [];
 
   //This is to checkgroup based on the permit allowed to update task while looping.
   Object.keys(userGroupFromPermit).forEach((key) => {
@@ -564,47 +568,53 @@ exports.updateTask = catchAsyncError(async (req, res, next) => {
   delete req.body.usergroup;
 
   //This is to check if the current State if user is updating the Task which is at o
-  if (req.body.Task_state !== checkCurrentState.Task_state) {
+  if (currentState !== dbCurrentState.Task_state) {
     return next(
-      new ErrorHandler("you are not updating the current state", 404)
+      new ErrorHandler("You are not updating the current state", 404)
     );
   }
 
-  // const allowedTaskState = ["open", "todolist", "doing", "done", "closed"];
-  // const currentState = req.body.Task_state;
-  // const currentIndex = allowedTaskState.indexOf(req.body.Task_state);
-
-  // if (req.body.Task_newState === "promote") {
-  //   if (currentIndex !== -1 && currentIndex < allowedTaskState.length - 1) {
-  //     req.body.Task_state = allowedTaskState[currentIndex + 1];
-  //   } else {
-  //     return next(new ErrorHandler("Unable to promote the task", 404));
-  //   }
-  // } else if (req.body.Task_newState === "demote") {
-  //   if (currentIndex !== -1 && currentIndex > 0) {
-  //     req.body.Task_state = allowedTaskState[currentIndex - 1];
-  //   } else {
-  //     return next(new ErrorHandler("Unable to demote the task", 404));
-  //   }
-  // }
-
-  //This is to tackle the plan if it is an empty string ********** roy need to revisit this logic
-  if (req.body.Task_plan === "") {
-    if (Task_plan !== null && req.body.Task_plan === "") {
-      planIsDiff = true;
-      const newMessage = req.username + " has removed the plan from the task.";
-      if (req.body.Task_notes !== "") {
-        req.body.Task_notes += "\n" + newMessage;
-      } else {
-        req.body.Task_notes = newMessage;
-      }
+  // This is for all the messages to be displayed based on the audit trail
+  if (currentNotes !== "") {
+    newMessage.push(currentNotes);
+  }
+  if (currentPlan !== "") {
+    if (currentPlan !== Task_plan) {
+      newMessage.push(
+        `${req.username} has updated the task to associate with plan ${currentPlan}`
+      );
     }
   }
+  if (currentPlan === "") {
+    if (Task_plan !== null && currentPlan === "") {
+      planIsDiff = true;
+      newMessage.push(`${req.username} has removed the plan from the task.`);
+    }
+  }
+  if (req.body.Task_newState === "promote") {
+    newMessage.push(
+      `${req.username} has ${
+        currentState === "done" ? "approved" : "promoted"
+      } the task from ${currentState} to ${promotedState}`
+    );
+  }
 
+  if (req.body.Task_newState === "demote") {
+    newMessage.push(
+      `${req.username} has ${
+        currentState === "done" ? "rejected" : "demoted"
+      } the task from ${currentState} to ${demotedState}`
+    );
+  }
+  if (newMessage.length > 0) {
+    newMessage = newMessage.join("\n ");
+  }
+
+  // All the conditions to check if there is
   if (
-    req.body.Task_plan === "" &&
+    currentPlan === "" &&
     !planIsDiff &&
-    req.body.Task_notes === "" &&
+    currentNotes === "" &&
     !req.body.Task_newState
   ) {
     return next(
@@ -612,29 +622,20 @@ exports.updateTask = catchAsyncError(async (req, res, next) => {
     );
   }
 
-  if (
-    req.body.Task_plan !== "" &&
-    (req.body.Task_notes === "" || req.body.Task_notes !== "")
-  ) {
-    if (req.body.Task_plan === Task_plan && !req.body.Task_newState) {
-      console.log(
-        req.body.Task_plan,
-        Task_plan,
-        "if taskplan same as db and there is no newstate"
-      );
+  if (currentPlan !== "" && (currentNotes === "" || currentNotes !== "")) {
+    if (
+      currentPlan === Task_plan &&
+      !req.body.Task_newState &&
+      currentNotes === ""
+    ) {
       return next(
         new ErrorHandler(`You are not updating any of the task details`, 404)
       );
     } else if (
-      req.body.Task_plan !== Task_plan &&
+      currentPlan !== Task_plan &&
       req.body.Task_newState === "promote" &&
-      req.body.Task_state === "done"
+      currentState === "done"
     ) {
-      console.log(
-        req.body.Task_plan,
-        Task_plan,
-        "if taskplan is not the same, and have promotion action "
-      );
       return next(
         new ErrorHandler(
           "You are not allowed to promote with a plan changed.",
@@ -642,11 +643,10 @@ exports.updateTask = catchAsyncError(async (req, res, next) => {
         )
       );
     } else if (
-      req.body.Task_plan !== Task_plan &&
+      currentPlan !== Task_plan &&
       !req.body.Task_newState &&
-      req.body.Task_state === "done"
+      currentState === "done"
     ) {
-      console.log(req.body.Task_plan, Task_plan, `in update State`);
       return next(
         new ErrorHandler(
           "You are only allowed to reject and update plan in done state"
@@ -654,91 +654,26 @@ exports.updateTask = catchAsyncError(async (req, res, next) => {
       );
     }
   }
-
-  // To track any changes if the task plan did change from database. Associate Task plan/De-associate
-  if (req.body.Task_plan) {
-    console.log(req.body.Task_plan, Task_plan);
-    if (req.body.Task_plan !== Task_plan) {
-      // For Audit Trail formatting to append below task_notes if plan did updated
-      const newMessage =
-        (req.body.Task_notes || req.body.Task_newState ? "\n" : "") +
-        " " +
-        req.username +
-        " has updated the task to associate with Plan: " +
-        (req.body.Task_plan ? req.body.Task_plan : "");
-
-      if (req.body.Task_notes) {
-        req.body.Task_notes += newMessage;
-      } else {
-        req.body.Task_notes = newMessage;
-      }
-    }
-  }
-
-  // For Audit Trail formatting to append to task_notes if there is a state transition
-  if (req.body.Task_newState === "promote") {
-    const newMessage =
-      (req.body.Task_notes || req.body.Task_plan ? "\n" : "") +
-      " " +
-      req.username +
-      ` has ${
-        currentState === "done" ? "Approve" : "promoted"
-      } the task from ` +
-      currentState +
-      " to " +
-      req.body.Task_state;
-    if (req.body.Task_notes !== "") {
-      req.body.Task_notes += newMessage;
-    } else {
-      req.body.Task_notes = "" + newMessage;
-    }
-  } else if (req.body.Task_newState === "demote") {
-    const newMessage =
-      (req.body.Task_notes || req.body.Task_plan ? "\n" : "") +
-      " " +
-      req.username +
-      ` has ${
-        currentState === "done" ? "rejected" : "demoted"
-      } the task from ` +
-      currentState +
-      " to " +
-      req.body.Task_state;
-    if (req.body.Task_notes !== "") {
-      req.body.Task_notes += newMessage;
-    } else {
-      req.body.Task_notes = "" + newMessage;
-    }
+  if (
+    currentPlan !== Task_plan &&
+    req.body.Task_newState === "promote" &&
+    currentState === "done" &&
+    currentPlan !== ""
+  ) {
+    return next(
+      new ErrorHandler("You are not allowed to update the currentplan")
+    );
   }
 
   if (req.body.Task_newState === "promote") {
-    if (currentIndex !== -1 && currentIndex < allowedTaskState.length - 1) {
-      req.body.Task_state = allowedTaskState[currentIndex + 1];
-      delete req.body.Task_newState;
-    } else {
-      return next(new ErrorHandler("Unable to promote the task", 404));
-    }
+    req.body.Task_state = promotedState;
   } else if (req.body.Task_newState === "demote") {
-    if (currentIndex !== -1 && currentIndex > 0) {
-      req.body.Task_state = allowedTaskState[currentIndex - 1];
-      delete req.body.Task_newState;
-    } else {
-      return next(new ErrorHandler("Unable to demote the task", 404));
-    }
+    req.body.Task_state = demotedState;
   }
-
-  // Setting the plan to null if it is an empty string
-  // if (req.body.Task_plan === "") {
-  //   req.body.Task_plan = null;
-  //   const newMessage = req.username + " has removed the plan from the task.";
-
-  //   if (req.body.Task_notes !== "") {
-  //     req.body.Task_notes += "\n" + newMessage;
-  //   } else {
-  //     req.body.Task_notes = newMessage;
-  //   }
-  // }
-
-  if (req.body.Task_notes !== "") {
+  // When the task notes is not empty from the frontend, it retrieve current task notes
+  // if (currentNotes !== "") {
+  currentNotes = currentNotes || [];
+  if (currentNotes.length > 0 || Array.isArray(currentNotes)) {
     const taskNoteArr = await TMS.getTaskNotes(req.params.taskid);
     if (!taskNoteArr) {
       return next(new ErrorHandler("Unable to retrieve any task notes", 404));
@@ -749,14 +684,18 @@ exports.updateTask = catchAsyncError(async (req, res, next) => {
       currentState: currentState,
       date: formattedDate,
       timestamp: formattedTimestamp,
-      notes: req.body.Task_notes,
+      notes: newMessage,
     };
     newTaskArr = JSON.parse(taskNoteArr[0].Task_notes);
     newTaskArr.push(notesObj);
     req.body.Task_notes = JSON.stringify(newTaskArr);
   }
+
+  // }
+
   req.body.Task_owner = req.username;
   validationFn.changeEmptyFieldsToNull(req.body);
+  delete req.body.Task_newState;
 
   // Data has been sanitized and retrieve accordingly before inserting to database.
   let clauses = [];
