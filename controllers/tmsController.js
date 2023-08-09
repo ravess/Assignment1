@@ -482,6 +482,7 @@ exports.createTask = catchAsyncError(async (req, res, next) => {
   //Format the date to yyyy-mm-dd
   const formattedDate = validationFn.formatDate();
   const formattedTimestamp = validationFn.formatTimeStamp();
+  let newMessage = [];
 
   //Might need to remove for the task plan if there is a body
   validationFn.changeEmptyFieldsToNull(req.body);
@@ -499,9 +500,23 @@ exports.createTask = catchAsyncError(async (req, res, next) => {
       new ErrorHandler(`Pleas ensure you input the name and description in it`)
     );
   }
+  if (req.body.Task_notes !== null) {
+    newMessage.push(
+      `${req.body.Task_notes}\n ${req.username} has created a task`
+    );
+  }
+
+  if (req.body.Task_notes === null) {
+    newMessage.push(`${req.username} has created a Task`);
+  }
+
+  if (newMessage.length > 0) {
+    newMessage = newMessage.join('\n ');
+  }
 
   // THe below code snippet is when the task notes is an empty string, it will set it to be an array which than follows to store in the database. Either way it will convert the req.body[Task_notes] into an array of objects.
   req.body.Task_notes = req.body.Task_notes || [];
+
   if (req.body.Task_notes.length > 0 || Array.isArray(req.body.Task_notes)) {
     const notesArr = [];
     const notesObj = {
@@ -509,7 +524,7 @@ exports.createTask = catchAsyncError(async (req, res, next) => {
       currentState: req.body.Task_state,
       date: req.body.Task_createDate,
       timestamp: formattedTimestamp,
-      notes: req.body.Task_notes,
+      notes: newMessage,
     };
     notesArr.push(notesObj);
     req.body.Task_notes = notesArr;
@@ -578,10 +593,10 @@ exports.updateTask = catchAsyncError(async (req, res, next) => {
   }
   delete req.body.usergroup;
 
-  //This is to check if the current State if user is updating the Task which is at o
+  //This is to check if the current State if user is updating the Task which is at correect State
   if (currentState !== dbCurrentState.Task_state) {
     return next(
-      new ErrorHandler('You are not updating the current state', 404)
+      new ErrorHandler('You are not updating the current state', 407)
     );
   }
 
