@@ -1,4 +1,4 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
 
 const {
@@ -6,10 +6,12 @@ const {
   isUserLoggedIn,
   loginUser,
   checkgroup,
-} = require("../controllers/authController");
+  checkPermit,
+} = require('../controllers/authController');
 
-router.route("/login").post(loginUser);
-router.route("/logout").get(isUserLoggedIn, logout);
-router.route("/checkgroup").post(isUserLoggedIn, checkgroup);
+router.route('/login').post(loginUser);
+router.route('/logout').get(isUserLoggedIn, logout);
+router.route('/checkgroup').post(isUserLoggedIn, checkgroup);
+router.route('/checkpermit/:appacronym').post(isUserLoggedIn, checkPermit);
 
 module.exports = router;

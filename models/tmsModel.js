@@ -76,7 +76,7 @@ const tmsModel = {
     try {
       const query =
         //Need change the query
-        'SELECT Plan_MVP_name FROM plan where Plan_app_Acronym=?';
+        'SELECT * FROM plan where Plan_app_Acronym=?';
       const [results] = await connection.query(query, appacronym);
       return results;
     } finally {
@@ -90,6 +90,18 @@ const tmsModel = {
         //Need change the query
         'SELECT * FROM plan where Plan_MVP_name=?';
       const [results] = await connection.query(query, [mvpparams]);
+      return results;
+    } finally {
+      connection.release();
+    }
+  },
+  getPlanColor: async (mvpparams) => {
+    const connection = await pool.promise().getConnection();
+    try {
+      const query =
+        //Need change the query
+        'SELECT Plan_color, Plan_MVP_name FROM plan where Plan_MVP_name=?';
+      const [[results]] = await connection.query(query, [mvpparams]);
       return results;
     } finally {
       connection.release();

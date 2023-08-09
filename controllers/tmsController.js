@@ -11,7 +11,7 @@ exports.getAllApps = catchAsyncError(async (req, res, next) => {
   const apps = await TMS.getAllApps();
 
   if (!apps || apps.length === 0) {
-    return next(new ErrorHandler('Unable to find any apps', 404));
+    return next(new ErrorHandler('Unable to find any apps', 405));
   }
 
   const formattedApps = apps.map((app) => {
@@ -32,7 +32,7 @@ exports.getAllApps = catchAsyncError(async (req, res, next) => {
 exports.getApp = catchAsyncError(async (req, res, next) => {
   const app = await TMS.getApp(req.params.appacronym);
   if (!app || app.length === 0) {
-    return next(new ErrorHandler('Unable to find app', 404));
+    return next(new ErrorHandler('Unable to find app', 405));
   }
 
   const formattedApp = await Promise.all(
@@ -190,19 +190,26 @@ exports.updateApp = catchAsyncError(async (req, res, next) => {
 exports.getAllPlans = catchAsyncError(async (req, res, next) => {
   const plans = await TMS.getAllPlans(req.params.appacronym);
   if (!plans || plans.length === 0) {
-    return next(new ErrorHandler('Unable to find any plans', 404));
+    return next(new ErrorHandler('Unable to find any plans', 405));
   }
+
+  const formattedPlan = plans.map((planItem) => ({
+    ...planItem,
+    Plan_startDate: validationFn.formatDate(planItem.Plan_startDate),
+    Plan_endDate: validationFn.formatDate(planItem.Plan_endDate),
+  }));
+
   res.status(200).json({
     success: true,
     results: plans.length,
-    data: plans,
+    data: formattedPlan,
   });
 });
 
 exports.getPlan = catchAsyncError(async (req, res, next) => {
   const plan = await TMS.getPlan(req.params.planid);
   if (!plan || plan.length === 0) {
-    return next(new ErrorHandler('Unable to find plan', 404));
+    return next(new ErrorHandler('Unable to find plan', 405));
   }
   const formattedPlan = plan.map((planItem) => ({
     ...planItem,
@@ -214,6 +221,19 @@ exports.getPlan = catchAsyncError(async (req, res, next) => {
     success: true,
     message: 'Here is the plan details',
     data: formattedPlan,
+  });
+});
+
+exports.getPlanColor = catchAsyncError(async (req, res, next) => {
+  const plansColor = await TMS.getPlanColor(req.params.planid);
+  if (!plansColor || plansColor.length === 0) {
+    return next(new ErrorHandler('Unable to find plan', 405));
+  }
+
+  res.status(200).json({
+    success: true,
+    message: 'Here is the planColors details',
+    data: plansColor,
   });
 });
 
@@ -262,7 +282,7 @@ exports.updatePlan = catchAsyncError(async (req, res, next) => {
 
   const plan = await TMS.getPlan(req.params.planid);
   if (!plan || plan.length === 0) {
-    return next(new ErrorHandler('Unable to find plan', 404));
+    return next(new ErrorHandler('Unable to find plan', 405));
   }
   const formattedPlan = plan.map((planItem) => ({
     ...planItem,
@@ -343,7 +363,7 @@ exports.getAllTasks = catchAsyncError(async (req, res, next) => {
 
   const tasks = await TMS.getAllTasks(req.params.appacronym);
   if (!tasks || tasks.length === 0) {
-    return next(new ErrorHandler('Unable to find any tasks', 404));
+    return next(new ErrorHandler('Unable to find any tasks', 405));
   }
   const formattedTasks = tasks.map((task) => {
     const localTime = task.Task_createDate
@@ -407,7 +427,7 @@ exports.getTask = catchAsyncError(async (req, res, next) => {
 
   const task = await TMS.getTask(req.params.taskid);
   if (!task || task.length === 0) {
-    return next(new ErrorHandler('Unable to find task', 404));
+    return next(new ErrorHandler('Unable to find task', 405));
   }
   const formattedTask = task.map((task) => {
     const localTime = task.Task_createDate
