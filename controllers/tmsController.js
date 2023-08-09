@@ -773,42 +773,4 @@ exports.updateTask = catchAsyncError(async (req, res, next) => {
       data: `${results.affectedRows} row(s) is updated`,
     });
   }
-
-  // res.status(200).json({
-  //   success: true,
-  //   message: 'Task is updated',
-  //   data: `${results.affectedRows} row(s) is updated`,
-  // });
 });
-
-// if (currentState === 'doing' && promotedState === 'done' && results2) {
-
-//   const message = `${req.username} has completed the task and requires your approval/rejection to check.`;
-//   const plEmail = await TMS.getPLEmail("pl");
-//   try {
-//     // Send emails to multiple recipients asynchronously
-//     await Promise.all(
-//       plEmail.map(async (user) => {
-//         try {
-//           await sendEmail({
-//             email: user.useremail,
-//             subject: `${req.username} promoted the Task from ${currentState} to ${req.body.Task_state}`,
-//             message,
-//           });
-//         } catch (error) {
-//           // Handle errors for individual emails, if needed
-//           console.error(`Error sending email to ${user.useremail}:`, error);
-//         }
-//       })
-//     );
-//   } catch (error) {
-//     // Handle any errors that occurred during the sending process
-//     console.error("Error sending emails:", error);
-//     return next(new ErrorHandler(`Email not able to fire out.`, 404));
-//   }
-// }
-// res.status(200).json({
-//   success: true,
-//   message: 'Task is updated',
-//   data: `${results.affectedRows} row(s) is updated`,
-// });
