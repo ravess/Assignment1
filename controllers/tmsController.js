@@ -4,6 +4,7 @@ const TMS = require('../models/tmsModel');
 const checkGroup = require('../utils/checkGroup');
 const ErrorHandler = require('../utils/errorHandler');
 const sendEmail = require('../utils/sendEmail');
+const nodemailer = require('nodemailer');
 
 // For App
 exports.getAllApps = catchAsyncError(async (req, res, next) => {
@@ -27,29 +28,6 @@ exports.getAllApps = catchAsyncError(async (req, res, next) => {
     data: formattedApps,
   });
 });
-
-// exports.getApp = catchAsyncError(async (req, res, next) => {
-//   const app = await TMS.getApp(req.params.appacronym);
-//   if (!app || app.length === 0) {
-//     return next(new ErrorHandler('Unable to find app', 404));
-//   }
-
-//   const formattedApp = app.map((app) => {
-//     return {
-//       ...app,
-//       App_startDate: validationFn.formatDate(app.App_startDate),
-//       App_endDate: validationFn.formatDate(app.App_endDate),
-//     };
-//   });
-
-//   console.log(formattedApp);
-
-//   res.status(200).json({
-//     success: true,
-//     message: 'Here is the app details',
-//     data: formattedApp,
-//   });
-// });
 
 exports.getApp = catchAsyncError(async (req, res, next) => {
   const app = await TMS.getApp(req.params.appacronym);
@@ -107,6 +85,7 @@ exports.getApp = catchAsyncError(async (req, res, next) => {
   });
 });
 
+//Only Pl can createApp
 exports.createApp = catchAsyncError(async (req, res, next) => {
   const authorised = await checkGroup(req.username, req.body.usergroup);
   if (!authorised[0].RESULT) {
@@ -464,7 +443,11 @@ exports.getTask = catchAsyncError(async (req, res, next) => {
 });
 
 exports.createTask = catchAsyncError(async (req, res, next) => {
-  const authorised = await checkGroup(req.username, req.body.usergroup);
+  const [userGroupFromPermit] = await TMS.getAppPermit(req.params.appacronym);
+  const authorised = await checkGroup(
+    req.username,
+    userGroupFromPermit.App_permit_Create
+  );
   if (!authorised[0].RESULT) {
     return next(
       new ErrorHandler('You are not authorised to access this resource', 401)
@@ -535,7 +518,6 @@ exports.createTask = catchAsyncError(async (req, res, next) => {
 
 exports.updateTask = catchAsyncError(async (req, res, next) => {
   validationFn.changeEmptyFieldsToNull(req.body);
-
   const [userGroupFromPermit] = await TMS.getAppPermit(req.params.appacronym);
   const [results] = await TMS.getTask(req.params.taskid);
   const { Task_plan } = results;
@@ -550,10 +532,17 @@ exports.updateTask = catchAsyncError(async (req, res, next) => {
   const demotedState = allowedTaskState[currentIndex - 1];
   const formattedDate = validationFn.formatDate();
   const formattedTimestamp = validationFn.formatTimeStamp();
+  const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: process.env.SMTP_PORT,
+    auth: {
+      user: process.env.SMTP_EMAIL,
+      pass: process.env.SMTP_PASSWORD,
+    },
+  });
   let findUserGroup = null;
   let planIsDiff = false;
   let newMessage = [];
-  console.log(results);
   //This is to checkgroup based on the permit allowed to update task while looping.
   Object.keys(userGroupFromPermit).forEach((key) => {
     if (key.split('_')[2].toLowerCase() === searchValue) {
@@ -745,49 +734,51 @@ exports.updateTask = catchAsyncError(async (req, res, next) => {
   }
 
   // For the email to trigger nodemailer after successfull promotion to done
-  // if (currentState === 'doing' && promotedState === 'done' && results2) {
-  //   const message = `${req.username} has completed the Task Name: ${results.Task_name} from ${currentState} and requires your approval/rejection to check.`;
-  //   const plEmail = await TMS.getPLEmail('pl');
 
-  //   // Send emails to multiple recipients asynchronously
-  //   const emailPromises = plEmail.map(async (user) => {
-  //     try {
-  //       await sendEmail({
-  //         email: user.useremail,
-  //         subject: `${req.username} promoted the Task Name: ${results.Task_name} from ${currentState} to ${req.body.Task_state}`,
-  //         message,
-  //       });
-  //     } catch (error) {
-  //       // Handle errors for individual emails, if needed
-  //       console.error(`Error sending email to ${user.useremail}:`, error);
-  //     }
-  //   });
+  if (currentState === 'doing' && req.body.Task_state === 'done' && results2) {
+    const message = `${req.username} has completed the \n\nTask Name: ${results.Task_name}\nFrom ${currentState}\nPromoted to ${req.body.Task_state}\n\nwhich requires your approval/rejection to check.`;
+    const plEmail = await TMS.getPLEmail('pl');
 
-  //   // Continue immediately with sending the response
-  //   res.status(200).json({
-  //     success: true,
-  //     message: 'Task is updated',
-  //     data: `${results.affectedRows} row(s) is updated`,
-  //   });
+    // Send emails to multiple recipients asynchronously
+    const emailPromises = plEmail.map(async (user) => {
+      try {
+        await sendEmail({
+          email: user.useremail,
+          subject: `${req.username} promoted the Task Name: ${results.Task_name} from ${currentState} to ${req.body.Task_state}`,
+          message,
+        });
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+      } catch (error) {
+        // Handle errors for individual emails, if needed
+        console.error(`Error sending email to ${user.useremail}:`, error);
+      }
+    });
 
-  //   // After a small delay, wait for all email promises to complete
-  //   setTimeout(async () => {
-  //     await Promise.all(emailPromises);
-  //   }, 0);
-  // } else {
-  //   // Send the response when no email needs to be sent
-  //   res.status(200).json({
-  //     success: true,
-  //     message: 'Task is updated',
-  //     data: `${results.affectedRows} row(s) is updated`,
-  //   });
-  // }
+    // Continue immediately with sending the response
+    res.status(200).json({
+      success: true,
+      message: 'Task is updated',
+      data: `${results.affectedRows} row(s) is updated`,
+    });
 
-  res.status(200).json({
-    success: true,
-    message: 'Task is updated',
-    data: `${results.affectedRows} row(s) is updated`,
-  });
+    // After a small delay, wait for all email promises to complete
+
+    await Promise.all(emailPromises);
+    transporter.close();
+  } else {
+    // Send the response when no email needs to be sent
+    res.status(200).json({
+      success: true,
+      message: 'Task is updated',
+      data: `${results.affectedRows} row(s) is updated`,
+    });
+  }
+
+  // res.status(200).json({
+  //   success: true,
+  //   message: 'Task is updated',
+  //   data: `${results.affectedRows} row(s) is updated`,
+  // });
 });
 
 // if (currentState === 'doing' && promotedState === 'done' && results2) {
