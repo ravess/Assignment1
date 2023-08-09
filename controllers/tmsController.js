@@ -535,7 +535,7 @@ exports.createTask = catchAsyncError(async (req, res, next) => {
 
 exports.updateTask = catchAsyncError(async (req, res, next) => {
   validationFn.changeEmptyFieldsToNull(req.body);
-  console.log(req.body);
+
   const [userGroupFromPermit] = await TMS.getAppPermit(req.params.appacronym);
   const [results] = await TMS.getTask(req.params.taskid);
   const { Task_plan } = results;
@@ -553,7 +553,6 @@ exports.updateTask = catchAsyncError(async (req, res, next) => {
   let findUserGroup = null;
   let planIsDiff = false;
   let newMessage = [];
-
   //This is to checkgroup based on the permit allowed to update task while looping.
   Object.keys(userGroupFromPermit).forEach((key) => {
     if (key.split('_')[2].toLowerCase() === searchValue) {
@@ -745,49 +744,79 @@ exports.updateTask = catchAsyncError(async (req, res, next) => {
   }
 
   // For the email to trigger nodemailer after successfull promotion to done
-  if (currentState === 'doing' && req.body.Task_state === 'done' && results2) {
-    // const message = `${req.username} has completed the task and require your approval/rejection to check.`;
-    // const plEmail = await TMS.getPLEmail('pl');
-    // try {
-    //   await Promise.all()
-    //   await sendEmail({
-    //     email: plEmail.map((user) => user.useremail),
-    //     subject: `${req.username} promoted the Task from ${currentState} to ${req.body.Task_state}`,
-    //     message,
-    //   });
-    // } catch (error) {
-    //   if (error) {
-    //     return next(new ErrorHandler(`Email not able to fire out.`, 404));
-    //   }
-    // }
-    //
-    // const message = `${req.username} has completed the task and requires your approval/rejection to check.`;
-    // const plEmail = await TMS.getPLEmail("pl");
-    // try {
-    //   // Send emails to multiple recipients asynchronously
-    //   await Promise.all(
-    //     plEmail.map(async (user) => {
-    //       try {
-    //         await sendEmail({
-    //           email: user.useremail,
-    //           subject: `${req.username} promoted the Task from ${currentState} to ${req.body.Task_state}`,
-    //           message,
-    //         });
-    //       } catch (error) {
-    //         // Handle errors for individual emails, if needed
-    //         console.error(`Error sending email to ${user.useremail}:`, error);
-    //       }
-    //     })
-    //   );
-    // } catch (error) {
-    //   // Handle any errors that occurred during the sending process
-    //   console.error("Error sending emails:", error);
-    //   return next(new ErrorHandler(`Email not able to fire out.`, 404));
-    // }
-  }
-  res.status(200).json({
-    success: true,
-    message: 'Task is updated',
-    data: `${results.affectedRows} row(s) is updated`,
-  });
+//   if (currentState === 'doing' && promotedState === 'done' && results2) {
+//     const message = `${req.username} has completed the Task Name: ${results.Task_name} from ${currentState} and requires your approval/rejection to check.`;
+//     const plEmail = await TMS.getPLEmail('pl');
+
+//     // Send emails to multiple recipients asynchronously
+//     const emailPromises = plEmail.map(async (user) => {
+//       try {
+//         await sendEmail({
+//           email: user.useremail,
+//           subject: `${req.username} promoted the Task Name: ${results.Task_name} from ${currentState} to ${req.body.Task_state}`,
+//           message,
+//         });
+//       } catch (error) {
+//         // Handle errors for individual emails, if needed
+//         console.error(`Error sending email to ${user.useremail}:`, error);
+//       }
+//     });
+
+//     // Continue immediately with sending the response
+//     res.status(200).json({
+//       success: true,
+//       message: 'Task is updated',
+//       data: `${results.affectedRows} row(s) is updated`,
+//     });
+
+//     // After a small delay, wait for all email promises to complete
+//     setTimeout(async () => {
+//       await Promise.all(emailPromises);
+//     }, 0);
+//   } else {
+//     // Send the response when no email needs to be sent
+//     res.status(200).json({
+//       success: true,
+//       message: 'Task is updated',
+//       data: `${results.affectedRows} row(s) is updated`,
+//     });
+//   }
+// });
+
+res.status(200).json({
+  success: true,
+  message: 'Task is updated',
+  data: `${results.affectedRows} row(s) is updated`,
 });
+
+// if (currentState === 'doing' && promotedState === 'done' && results2) {
+
+//   const message = `${req.username} has completed the task and requires your approval/rejection to check.`;
+//   const plEmail = await TMS.getPLEmail("pl");
+//   try {
+//     // Send emails to multiple recipients asynchronously
+//     await Promise.all(
+//       plEmail.map(async (user) => {
+//         try {
+//           await sendEmail({
+//             email: user.useremail,
+//             subject: `${req.username} promoted the Task from ${currentState} to ${req.body.Task_state}`,
+//             message,
+//           });
+//         } catch (error) {
+//           // Handle errors for individual emails, if needed
+//           console.error(`Error sending email to ${user.useremail}:`, error);
+//         }
+//       })
+//     );
+//   } catch (error) {
+//     // Handle any errors that occurred during the sending process
+//     console.error("Error sending emails:", error);
+//     return next(new ErrorHandler(`Email not able to fire out.`, 404));
+//   }
+// }
+// res.status(200).json({
+//   success: true,
+//   message: 'Task is updated',
+//   data: `${results.affectedRows} row(s) is updated`,
+// });
