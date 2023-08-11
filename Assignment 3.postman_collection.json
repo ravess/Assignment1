@@ -1,0 +1,85 @@
+{
+	"info": {
+		"_postman_id": "1b10165c-af02-4436-89e7-6f2ffc602dfd",
+		"name": "Assignment 3",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "2936292"
+	},
+	"item": [
+		{
+			"name": "CreateTask",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"admin\",\r\n    \"password\": \"Zcj4rz2x!!\",\r\n    \"Task_app_Acronym\": \"\",\r\n    \"Task_name\": \"\",\r\n    \"Task_notes\": \"\",\r\n    \"Task_plan\": \"\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://127.0.0.1:8080/createTask",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8080",
+					"path": [
+						"createTask"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Task By State",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:8080/getTaskByState",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8080",
+					"path": [
+						"getTaskByState"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Promote Task 2 Done",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:8080/promoteTask2Done",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8080",
+					"path": [
+						"promoteTask2Done"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
