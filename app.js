@@ -5,25 +5,24 @@ const dotenv = require("dotenv");
 const cors = require("cors");
 
 const app = express();
-const port = 8000;
 
 const errorMiddleware = require("./middlewares/errors");
 const ErrorHandler = require("./utils/errorHandler");
 // Setting up config.env files variables **config files has to be loaded before routes and database connection made
 dotenv.config({ path: "./.env" });
-
+const port = process.env.PORT;
 //TO check for cookie
 app.use(cookieParser());
 // Allow frontend app to talk to backendurl
-app.use(
-  cors({
-    origin: process.env.FRONTENDURL,
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE"],
-  })
-);
-// app.use(cors());
+// app.use(
+//   cors({
+//     origin: process.env.FRONTENDURL,
+//     allowedHeaders: ["Content-Type", "Authorization"],
+//     credentials: true,
+//     methods: ["GET", "POST", "PUT", "DELETE"],
+//   })
+// );
+app.use(cors());
 
 // Handling Uncaught Exception before database, has to be near the top here.
 process.on("uncaughtException", (err) => {
@@ -36,18 +35,27 @@ process.on("uncaughtException", (err) => {
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json()); // Setup the body/json parser to handle form submits
 
-const admin = require("./routes/adminRoute");
-const auth = require("./routes/authRoute");
-const user = require("./routes/userRoute");
-const tms = require("./routes/tmsRoute");
-app.use(auth);
-app.use(admin);
-app.use(user);
-app.use(tms);
+// const admin = require("./routes/adminRoute");
+// const auth = require("./routes/authRoute");
+// const user = require("./routes/userRoute");
+// const tms = require("./routes/tmsRoute");
+const a3 = require("./routes/a3Route");
+app.use(a3);
+// app.use(auth);
+// app.use(admin);
+// app.use(user);
+// app.use(tms);
 
 // Handled unhandled routes (make sure is below the routes)
+// app.all("*", (req, res, next) => {
+//   next(new ErrorHandler(`${req.originalUrl} route not found`, 404));
+// });
+
 app.all("*", (req, res, next) => {
-  next(new ErrorHandler(`${req.originalUrl} route not found`, 404));
+  return res.status(500).json({
+    code: "E01",
+    message: "Invalid URL",
+  });
 });
 
 // Middlewares to handle error
