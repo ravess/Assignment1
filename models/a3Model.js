@@ -9,6 +9,36 @@ const a3Model = {
         'SELECT username, userpassword, userisActive FROM user where username=?';
       const [results] = await connection.query(query, [username]);
       return results;
+    } catch (error) {
+      throw error;
+    } finally {
+      connection.release();
+    }
+  },
+  getApp: async (appAcronymID) => {
+    const connection = await pool.promise().getConnection();
+    try {
+      const query =
+        //Need change the query
+        'SELECT * FROM application where App_Acronym=?';
+      const [results] = await connection.query(query, [appAcronymID]);
+      return results;
+    } catch (error) {
+      throw error;
+    } finally {
+      connection.release();
+    }
+  },
+  getAllPlans: async (appacronym) => {
+    const connection = await pool.promise().getConnection();
+    try {
+      const query =
+        //Need change the query
+        'SELECT * FROM plan where Plan_app_Acronym=?';
+      const [results] = await connection.query(query, appacronym);
+      return results;
+    } catch (error) {
+      throw error;
     } finally {
       connection.release();
     }
@@ -20,6 +50,8 @@ const a3Model = {
         'SELECT App_permit_Open, App_permit_toDoList, App_permit_Doing, App_permit_Done, App_permit_Create FROM application where App_Acronym=?';
       const [results] = await connection.query(query, [appacronym]);
       return results;
+    } catch (error) {
+      throw error;
     } finally {
       connection.release();
     }
@@ -30,18 +62,33 @@ const a3Model = {
       const query = 'UPDATE application SET App_Rnumber=? WHERE App_Acronym=?';
       const [results] = await connection.query(query, [apprnumber, appacronym]);
       return results;
+    } catch (error) {
+      throw error;
     } finally {
       connection.release();
     }
   },
-  getAllTasks: async (appacronym) => {
+  getAllTasksByState: async (appacronym, state) => {
     const connection = await pool.promise().getConnection();
     try {
       const query =
         //Need change the query
-        'SELECT * FROM task where Task_app_Acronym=?';
+        'SELECT * FROM task where Task_app_Acronym=? AND Task_state=?';
 
-      const [results] = await connection.query(query, appacronym);
+      const [results] = await connection.query(query, [appacronym, state]);
+      return results;
+    } catch (error) {
+      console.log(error);
+      throw error;
+    } finally {
+      connection.release();
+    }
+  },
+  getTask: async (taskid) => {
+    const connection = await pool.promise().getConnection();
+    try {
+      const query = 'SELECT * from task where Task_id=?';
+      const [results] = await connection.query(query, taskid);
       return results;
     } finally {
       connection.release();
@@ -53,6 +100,8 @@ const a3Model = {
       const query = 'SELECT Task_notes from task where Task_id=?';
       const [results] = await connection.query(query, taskid);
       return results;
+    } catch (error) {
+      throw error;
     } finally {
       connection.release();
     }
@@ -63,6 +112,8 @@ const a3Model = {
       const query = 'insert into task set ?';
       const [results] = await connection.query(query, taskObj);
       return results;
+    } catch (error) {
+      throw error;
     } finally {
       connection.release();
     }
@@ -73,6 +124,32 @@ const a3Model = {
       const query = 'UPDATE task set Task_state=? WHERE Task_id=?';
       const [results] = await connection.query(query, [state, taskid]);
       return results;
+    } catch (error) {
+      throw error;
+    } finally {
+      connection.release();
+    }
+  },
+  updateTask: async (clauses, values) => {
+    const connection = await pool.promise().getConnection();
+    try {
+      const query =
+        //Need change the query
+        'UPDATE task SET ' + clauses + ' WHERE Task_id=?';
+      const [results] = await connection.query(query, values);
+      return results;
+    } finally {
+      connection.release();
+    }
+  },
+  updateAppFromTask: async (apprnumber, appacronym) => {
+    const connection = await pool.promise().getConnection();
+    try {
+      const query = 'UPDATE application SET App_Rnumber=? WHERE App_Acronym=?';
+      const [results] = await connection.query(query, [apprnumber, appacronym]);
+      return results;
+    } catch (error) {
+      throw error;
     } finally {
       connection.release();
     }
@@ -84,6 +161,8 @@ const a3Model = {
       const query = 'SELECT useremail FROM user WHERE usergroups LIKE ?';
       const [results] = await connection.query(query, [format]);
       return results;
+    } catch (error) {
+      throw error;
     } finally {
       connection.release();
     }
