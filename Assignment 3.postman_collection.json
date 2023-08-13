@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "1b10165c-af02-4436-89e7-6f2ffc602dfd",
+		"_postman_id": "807f4ace-d1af-4188-b516-6aef0ca213b1",
 		"name": "Assignment 3",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "2936292"
@@ -13,7 +13,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"username\": \"admin\",\r\n    \"password\": \"Zcj4rz2x!!\",\r\n    \"Task_app_Acronym\": \"\",\r\n    \"Task_name\": \"\",\r\n    \"Task_notes\": \"\",\r\n    \"Task_plan\": \"\"\r\n}",
+					"raw": "{\r\n    \"username\": \"admin\",\r\n    \"password\": \"Zcj4rz2x!!\",\r\n    \"Task_app_Acronym\": \"111111111\",\r\n    \"Task_description\": \"okok i give to yousadasd\",\r\n    \"Task_name\": \"haha\",\r\n    \"Task_plan\": \"Sprint 6\",\r\n    \"Task_notes\": \"hahahah like seriously what are you thinking muahahahahahahaha\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -42,6 +42,15 @@
 			"request": {
 				"method": "POST",
 				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"admin\",\r\n    \"password\": \"Zcj4rz2x!!\",\r\n    \"Task_app_Acronym\": \"111111111\",\r\n    \"Task_state\": \"\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
 				"url": {
 					"raw": "http://127.0.0.1:8080/getTaskByState",
 					"protocol": "http",
