@@ -62,7 +62,7 @@ app.all("*", (req, res, next) => {
 app.use(errorMiddleware);
 
 /** App listening on port */
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`MyAssignment1 app listening at http://localhost:${port}`);
 });
 
