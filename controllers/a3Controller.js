@@ -1,29 +1,29 @@
-const a3 = require("../models/a3Model");
-const bcrypt = require("bcryptjs");
-const checkGroup = require("../utils/checkGroup");
-const sendEmail = require("../utils/sendEmail");
-const validationFn = require("../utils/validation");
+const a3 = require('../models/a3Model');
+const bcrypt = require('bcryptjs');
+const checkGroup = require('../utils/checkGroup');
+const sendEmail = require('../utils/sendEmail');
+const validationFn = require('../utils/validation');
 
 exports.createTask = async (req, res, next) => {
   const errInvalidDataType = [];
   try {
     //Check for Invalid URL
-    if (req.originalUrl !== "/createTask") {
+    if (req.originalUrl !== '/createTask') {
       return res.status(500).json({
-        code: "E01",
-        message: "Invalid URL or contains queries.",
+        code: 'E01',
+        message: 'Invalid URL or contains queries.',
       });
     }
 
     //Check for Extra Fields
     const extraFields = [
-      "username",
-      "password",
-      "Task_app_Acronym",
-      "Task_notes",
-      "Task_plan",
-      "Task_description",
-      "Task_name",
+      'username',
+      'password',
+      'Task_app_Acronym',
+      'Task_notes',
+      'Task_plan',
+      'Task_description',
+      'Task_name',
     ];
 
     //Saving the object keys to a array for check of extra fields not to be inside
@@ -36,61 +36,61 @@ exports.createTask = async (req, res, next) => {
     });
     if (additionalFieldsPresent.length > 0) {
       additionalFieldsPresent.push(`received.`);
-      const errMessage = additionalFieldsPresent.join(", ");
+      const errMessage = additionalFieldsPresent.join(', ');
       return res.status(500).json({
-        code: "E02",
+        code: 'E02',
         message: `Invalid JSON - extra JSON parameters, ${errMessage}`,
       });
     }
 
     //Check For Invalid DataTypes
     for (const property in req.body) {
-      if (typeof req.body[property] !== "string") {
+      if (typeof req.body[property] !== 'string') {
         errInvalidDataType.push(property);
       }
     }
     if (errInvalidDataType.length > 0) {
       errInvalidDataType.push(`needs to be type [String]`);
-      const errMessage = errInvalidDataType.join(", ");
+      const errMessage = errInvalidDataType.join(', ');
       return res.status(500).json({
-        code: "E03",
+        code: 'E03',
         meesage: `Invalid DataType, ${errMessage}`,
       });
     }
 
     //Check for mandatory fields
     const mandatoryFields = [
-      "username",
-      "password",
-      "Task_app_Acronym",
-      "Task_description",
-      "Task_name",
+      'username',
+      'password',
+      'Task_app_Acronym',
+      'Task_description',
+      'Task_name',
     ];
 
     const notPresentInMandatoryFields = [];
     mandatoryFields.forEach((field) => {
       if (!reqBodyKeys.includes(field)) {
         notPresentInMandatoryFields.push(`${field}`);
-      } else if (req.body[field].trim() === "") {
+      } else if (req.body[field].trim() === '') {
         notPresentInMandatoryFields.push(`${field}`);
       }
     });
     if (notPresentInMandatoryFields.length > 0) {
       notPresentInMandatoryFields.push(`must not be empty.`);
-      const errMessage = notPresentInMandatoryFields.join(", ");
+      const errMessage = notPresentInMandatoryFields.join(', ');
       return res.status(500).json({
-        code: "E04",
+        code: 'E04',
         message: `Invalid JSON - ${errMessage}`,
       });
     }
 
     // Check if invalid Login Details
-    const user = await a3.loginUser(req.body.username);
+    const user = await a3.loginUser(req.body.username.trim());
 
-    if (!user[0] || req.body.username !== user[0].username) {
+    if (!user[0] || req.body.username.trim() !== user[0].username) {
       return res.status(500).json({
-        code: "E05",
-        message: "Invalid username or password",
+        code: 'E05',
+        message: 'Invalid username or password',
       });
     }
     // Check if password is correct if not also return Invalid Email or Password
@@ -101,15 +101,15 @@ exports.createTask = async (req, res, next) => {
     );
     if (!isPasswordMatched) {
       return res.status(500).json({
-        code: "E05",
-        message: "Invalid username or password",
+        code: 'E05',
+        message: 'Invalid username or password',
       });
     }
     // Check if user is disabled
     if (!user[0].userisActive) {
       return res.status(500).json({
-        code: "E06",
-        message: "User account is inactive",
+        code: 'E06',
+        message: 'User account is inactive',
       });
     }
 
@@ -119,7 +119,7 @@ exports.createTask = async (req, res, next) => {
 
     // Trim the relevant req.body properties
     for (const property in req.body) {
-      if (req.body[property] !== "") {
+      if (req.body[property] !== '') {
         req.body[property] = req.body[property].trim();
       }
     }
@@ -129,8 +129,8 @@ exports.createTask = async (req, res, next) => {
     );
     if (!userGroupFromPermit) {
       return res.status(500).json({
-        code: "E07",
-        message: "Application acronym is invalid",
+        code: 'E07',
+        message: 'Application acronym is invalid',
       });
     }
 
@@ -140,17 +140,17 @@ exports.createTask = async (req, res, next) => {
     );
     if (!authorised[0].RESULT) {
       return res.status(500).json({
-        code: "E08",
-        message: "User is not permitted to perform this action.",
+        code: 'E08',
+        message: 'User is not permitted to perform this action.',
       });
     }
 
     // Check for Invalid Task_plan which does not exist
-    if (!reqBodyKeys.includes("Task_plan")) {
+    if (!reqBodyKeys.includes('Task_plan')) {
       req.body.Task_plan = null;
     }
 
-    if (req.body.Task_plan !== "" && req.body.Task_plan !== null) {
+    if (req.body.Task_plan !== '' && req.body.Task_plan !== null) {
       const checkPlan = await a3.getAllPlans(req.body.Task_app_Acronym);
       const [isPlanFound] = checkPlan.filter((planObj) => {
         return planObj.Plan_MVP_name === req.body.Task_plan;
@@ -158,8 +158,8 @@ exports.createTask = async (req, res, next) => {
 
       if (!isPlanFound) {
         return res.status(500).json({
-          code: "E10",
-          message: "Task plan does not exist",
+          code: 'E10',
+          message: 'Task plan does not exist',
         });
       }
     }
@@ -167,7 +167,7 @@ exports.createTask = async (req, res, next) => {
     const [appData] = await a3.getApp(req.body.Task_app_Acronym);
     const appAcronym = appData.App_Acronym;
     const appRNumber = appData.App_Rnumber + 1;
-    const taskid = appAcronym + "_" + appRNumber;
+    const taskid = appAcronym + '_' + appRNumber;
 
     //Format the date to yyyy-mm-dd
     const formattedDate = validationFn.formatDate();
@@ -179,7 +179,7 @@ exports.createTask = async (req, res, next) => {
 
     req.body.Task_createDate = formattedDate;
     req.body.Task_creator = req.username;
-    req.body.Task_state = "open";
+    req.body.Task_state = 'open';
     req.body.Task_owner = req.username;
     req.body.Task_id = taskid;
 
@@ -194,7 +194,7 @@ exports.createTask = async (req, res, next) => {
     }
 
     if (newMessage.length > 0) {
-      newMessage = newMessage.join("\n ");
+      newMessage = newMessage.join('\n ');
     }
 
     req.body.Task_notes = req.body.Task_notes || [];
@@ -217,8 +217,8 @@ exports.createTask = async (req, res, next) => {
     const results = await a3.createTask(req.body);
     if (!results) {
       return res.status(500).json({
-        code: "E14",
-        message: "Internal Server Error.",
+        code: 'E14',
+        message: 'Internal Server Error.',
       });
     }
     const results2 = await a3.updateAppFromTask(
@@ -227,25 +227,25 @@ exports.createTask = async (req, res, next) => {
     );
     if (!results2) {
       return res.status(500).json({
-        code: "E14",
-        message: "Internal Server Error.",
+        code: 'E14',
+        message: 'Internal Server Error.',
       });
     }
 
     res.status(200).json({
-      code: "S01",
-      message: "Task is created",
+      code: 'S01',
+      message: 'Successfully Created!',
     });
   } catch (error) {
-    if (error.code === "ER_DATA_TOO_LONG") {
+    if (error.code === 'ER_DATA_TOO_LONG') {
       return res.status(500).json({
-        code: "E13",
-        message: "JSON Parameter exceeds size limit.",
+        code: 'E13',
+        message: 'JSON Parameter exceeds size limit.',
       });
     } else {
       return res.status(500).json({
-        code: "E14",
-        message: "Internal Server Error.",
+        code: 'E14',
+        message: 'Internal Server Error.',
       });
     }
   }
@@ -255,19 +255,19 @@ exports.getTaskByState = async (req, res, next) => {
   const errInvalidDataType = [];
   try {
     //Check for Invalid URL
-    if (req.originalUrl !== "/getTaskByState") {
+    if (req.originalUrl !== '/getTaskByState') {
       return res.status(500).json({
-        code: "E01",
-        message: "Invalid Url",
+        code: 'E01',
+        message: 'Invalid Url',
       });
     }
 
     //Check for Extra Fields
     const extraFields = [
-      "username",
-      "password",
-      "Task_app_Acronym",
-      "Task_state",
+      'username',
+      'password',
+      'Task_app_Acronym',
+      'Task_state',
     ];
     const reqBodyKeys = Object.keys(req.body);
     const additionalFieldsPresent = [];
@@ -278,60 +278,60 @@ exports.getTaskByState = async (req, res, next) => {
     });
     if (additionalFieldsPresent.length > 0) {
       additionalFieldsPresent.push(`received.`);
-      const errMessage = additionalFieldsPresent.join(", ");
+      const errMessage = additionalFieldsPresent.join(', ');
       return res.status(500).json({
-        code: "E02",
+        code: 'E02',
         message: `Invalid JSON - extra JSON parameters, ${errMessage}`,
       });
     }
 
     //Check For Invalid DataTypes
     for (const property in req.body) {
-      if (typeof req.body[property] !== "string") {
+      if (typeof req.body[property] !== 'string') {
         errInvalidDataType.push(property);
       }
     }
     if (errInvalidDataType.length > 0) {
       errInvalidDataType.push(`needs to be type [String]`);
-      const errMessage = errInvalidDataType.join(", ");
+      const errMessage = errInvalidDataType.join(', ');
       return res.status(500).json({
-        code: "E03",
+        code: 'E03',
         meesage: `Invalid DataType, ${errMessage}`,
       });
     }
 
     //Check for mandatory fields
     const mandatoryFields = [
-      "username",
-      "password",
-      "Task_app_Acronym",
-      "Task_state",
+      'username',
+      'password',
+      'Task_app_Acronym',
+      'Task_state',
     ];
 
     const notPresentInMandatoryFields = [];
     mandatoryFields.forEach((field) => {
       if (!reqBodyKeys.includes(field)) {
         notPresentInMandatoryFields.push(`${field}`);
-      } else if (req.body[field].trim() === "") {
+      } else if (req.body[field].trim() === '') {
         notPresentInMandatoryFields.push(`${field}`);
       }
     });
     if (notPresentInMandatoryFields.length > 0) {
       notPresentInMandatoryFields.push(`must not be empty.`);
-      const errMessage = notPresentInMandatoryFields.join(", ");
+      const errMessage = notPresentInMandatoryFields.join(', ');
       return res.status(500).json({
-        code: "E04",
+        code: 'E04',
         message: `Invalid JSON - ${errMessage}`,
       });
     }
 
     // Check if invalid Login Details
-    const user = await a3.loginUser(req.body.username);
+    const user = await a3.loginUser(req.body.username.trim());
 
-    if (!user[0] || req.body.username !== user[0].username) {
+    if (!user[0] || req.body.username.trim() !== user[0].username) {
       return res.status(500).json({
-        code: "E05",
-        message: "Invalid username or password",
+        code: 'E05',
+        message: 'Invalid username or password',
       });
     }
     // Check if password is correct if not also return Invalid Email or Password
@@ -342,15 +342,15 @@ exports.getTaskByState = async (req, res, next) => {
     );
     if (!isPasswordMatched) {
       return res.status(500).json({
-        code: "E05",
-        message: "Invalid username or password",
+        code: 'E05',
+        message: 'Invalid username or password',
       });
     }
     // Check if user is disabled
     if (!user[0].userisActive) {
       return res.status(500).json({
-        code: "E06",
-        message: "User account is inactive",
+        code: 'E06',
+        message: 'User account is inactive',
       });
     }
 
@@ -360,7 +360,7 @@ exports.getTaskByState = async (req, res, next) => {
 
     // Trim the relevant req.body properties
     for (const property in req.body) {
-      if (req.body[property] !== "") {
+      if (req.body[property] !== '') {
         req.body[property] = req.body[property].trim();
       }
     }
@@ -371,17 +371,17 @@ exports.getTaskByState = async (req, res, next) => {
     );
     if (!userGroupFromPermit) {
       return res.status(500).json({
-        code: "E07",
-        message: "Application acronym is invalid",
+        code: 'E07',
+        message: 'Application acronym is invalid',
       });
     }
 
-    const allowedStates = ["open", "todolist", "doing", "done", "closed"];
+    const allowedStates = ['open', 'todolist', 'doing', 'done', 'closed'];
 
     if (!allowedStates.includes(req.body.Task_state.toLowerCase().trim())) {
       return res.status(500).json({
-        code: "E12",
-        message: "State does not exist.",
+        code: 'E12',
+        message: 'State does not exist.',
       });
     }
 
@@ -391,43 +391,43 @@ exports.getTaskByState = async (req, res, next) => {
     );
     if (!tasks || tasks.length === 0) {
       return res.status(200).json({
-        code: "S01",
+        code: 'S01',
         Task: [],
       });
     }
     const formattedTasks = tasks.map((task) => {
       const localTime = task.Task_createDate
         ? task.Task_createDate.toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
           })
-        : "";
+        : '';
       return {
         ...task,
         Task_notes: JSON.parse(task.Task_notes),
         Task_createDate: task.Task_createDate
           ? task.Task_createDate.toISOString().slice(0, 10)
-          : "",
+          : '',
         Task_timestamp: localTime,
-        Task_plan: task.Task_plan ? task.Task_plan : "",
+        Task_plan: task.Task_plan ? task.Task_plan : '',
       };
     });
 
     res.status(200).json({
-      code: "S01",
+      code: 'S01',
       Task: formattedTasks,
     });
   } catch (error) {
-    if (error.code === "ER_DATA_TOO_LONG") {
+    if (error.code === 'ER_DATA_TOO_LONG') {
       return res.status(500).json({
-        code: "E13",
-        message: "DATA TOO LONG",
+        code: 'E13',
+        message: 'DATA TOO LONG',
       });
     } else {
       return res.status(500).json({
-        code: "E14",
-        message: "Internal Server Error.",
+        code: 'E14',
+        message: 'Internal Server Error.',
       });
     }
   }
@@ -437,15 +437,15 @@ exports.promoteTask2Done = async (req, res, next) => {
   const errInvalidDataType = [];
   try {
     //Check for Invalid URL
-    if (req.originalUrl !== "/promoteTask2Done") {
+    if (req.originalUrl !== '/promoteTask2Done') {
       return res.status(500).json({
-        code: "E01",
-        message: "Invalid URL or contains queries.",
+        code: 'E01',
+        message: 'Invalid URL or contains queries.',
       });
     }
 
     //Check for Extra Fields
-    const extraFields = ["username", "password", "Task_id", "Task_notes"];
+    const extraFields = ['username', 'password', 'Task_id', 'Task_notes'];
     const reqBodyKeys = Object.keys(req.body);
     const additionalFieldsPresent = [];
     reqBodyKeys.forEach((field) => {
@@ -455,55 +455,55 @@ exports.promoteTask2Done = async (req, res, next) => {
     });
     if (additionalFieldsPresent.length > 0) {
       additionalFieldsPresent.push(`received.`);
-      const errMessage = additionalFieldsPresent.join(", ");
+      const errMessage = additionalFieldsPresent.join(', ');
       return res.status(500).json({
-        code: "E02",
+        code: 'E02',
         message: `Invalid JSON - extra JSON parameters, ${errMessage}`,
       });
     }
 
     //Check For Invalid DataTypes
     for (const property in req.body) {
-      if (typeof req.body[property] !== "string") {
+      if (typeof req.body[property] !== 'string') {
         errInvalidDataType.push(property);
       }
     }
     if (errInvalidDataType.length > 0) {
       errInvalidDataType.push(`needs to be type [String]`);
-      const errMessage = errInvalidDataType.join(", ");
+      const errMessage = errInvalidDataType.join(', ');
       return res.status(500).json({
-        code: "E03",
+        code: 'E03',
         meesage: `Invalid DataType, ${errMessage}`,
       });
     }
 
     //Check for mandatory fields
-    const mandatoryFields = ["username", "password", "Task_id"];
+    const mandatoryFields = ['username', 'password', 'Task_id'];
 
     const notPresentInMandatoryFields = [];
     mandatoryFields.forEach((field) => {
       if (!reqBodyKeys.includes(field)) {
         notPresentInMandatoryFields.push(`${field}`);
-      } else if (req.body[field].trim() === "") {
+      } else if (req.body[field].trim() === '') {
         notPresentInMandatoryFields.push(`${field}`);
       }
     });
     if (notPresentInMandatoryFields.length > 0) {
       notPresentInMandatoryFields.push(`must not be empty.`);
-      const errMessage = notPresentInMandatoryFields.join(", ");
+      const errMessage = notPresentInMandatoryFields.join(', ');
       return res.status(500).json({
-        code: "E04",
+        code: 'E04',
         message: `Invalid JSON - ${errMessage}`,
       });
     }
 
     // Check if invalid Login Details
-    const user = await a3.loginUser(req.body.username);
+    const user = await a3.loginUser(req.body.username.trim());
 
-    if (!user[0] || req.body.username !== user[0].username) {
+    if (!user[0] || req.body.username.trim() !== user[0].username) {
       return res.status(500).json({
-        code: "E05",
-        message: "Invalid username or password",
+        code: 'E05',
+        message: 'Invalid username or password',
       });
     }
     // Check if password is correct if not also return Invalid Email or Password
@@ -514,15 +514,15 @@ exports.promoteTask2Done = async (req, res, next) => {
     );
     if (!isPasswordMatched) {
       return res.status(500).json({
-        code: "E05",
-        message: "Invalid username or password",
+        code: 'E05',
+        message: 'Invalid username or password',
       });
     }
     // Check if user is disabled
     if (!user[0].userisActive) {
       return res.status(500).json({
-        code: "E06",
-        message: "User account is inactive",
+        code: 'E06',
+        message: 'User account is inactive',
       });
     }
 
@@ -532,7 +532,7 @@ exports.promoteTask2Done = async (req, res, next) => {
 
     // Trim the relevant req.body properties
     for (const property in req.body) {
-      if (req.body[property] !== "") {
+      if (req.body[property] !== '') {
         req.body[property] = req.body[property].trim();
       }
     }
@@ -542,8 +542,8 @@ exports.promoteTask2Done = async (req, res, next) => {
     const [task] = await a3.getTask(req.body.Task_id);
     if (!task) {
       return res.status(500).json({
-        code: "E09",
-        message: "Task id does not exist.",
+        code: 'E09',
+        message: 'Task id does not exist.',
       });
     }
     const [userGroupFromPermit] = await a3.getAppPermit(task.Task_app_Acronym);
@@ -554,15 +554,15 @@ exports.promoteTask2Done = async (req, res, next) => {
     );
     if (!authorised[0].RESULT) {
       return res.status(500).json({
-        code: "E08",
-        message: "User is not permitted to perform this action.",
+        code: 'E08',
+        message: 'User is not permitted to perform this action.',
       });
     }
 
     //This is to check if the current State if user is updating the Task which is at correect State
-    if (task.Task_state !== "doing") {
+    if (task.Task_state !== 'doing') {
       return res.status(500).json({
-        code: "E11",
+        code: 'E11',
         message: `Task is not in [Doing] state.`,
       });
     }
@@ -578,7 +578,7 @@ exports.promoteTask2Done = async (req, res, next) => {
     );
 
     if (newMessage.length > 0) {
-      newMessage = newMessage.join("\n ");
+      newMessage = newMessage.join('\n ');
     }
 
     // When the task notes is not empty from the frontend, it retrieve current task notes
@@ -590,8 +590,8 @@ exports.promoteTask2Done = async (req, res, next) => {
       const taskNoteArr = await a3.getTaskNotes(req.body.Task_id);
       if (!taskNoteArr) {
         return res.status(500).json({
-          code: "E14",
-          message: "Internal Server Error.",
+          code: 'E14',
+          message: 'Internal Server Error.',
         });
       }
       let newTaskArr = [];
@@ -609,36 +609,36 @@ exports.promoteTask2Done = async (req, res, next) => {
 
     req.body.Task_owner = req.username;
     delete req.body.Task_id;
-    req.body.Task_state = "done";
+    req.body.Task_state = 'done';
 
     // Data has been sanitized and retrieve accordingly before inserting to database.
     let clauses = [];
     let values = [];
     for (const property in req.body) {
-      clauses.push(property + "=?");
+      clauses.push(property + '=?');
       values.push(req.body[property]);
     }
     if (values) {
       values.push(task.Task_id);
     }
     // The above code is to allow me to dynamicly accept any json values
-    clauses = clauses.join(",");
+    clauses = clauses.join(',');
     const results2 = await a3.updateTask(clauses, values);
 
     if (!results2) {
       return res.status(500).json({
-        code: "E14",
-        message: "Internal Server Error.",
+        code: 'E14',
+        message: 'Internal Server Error.',
       });
     }
 
     if (
-      task.Task_state === "doing" &&
-      req.body.Task_state === "done" &&
+      task.Task_state === 'doing' &&
+      req.body.Task_state === 'done' &&
       results2
     ) {
       const message = `${req.username} has completed the \n\nTask Name: ${task.Task_name}\nFrom ${task.Task_state}\nPromoted to ${req.body.Task_state}\n\nwhich requires your approval/rejection to check.`;
-      const plEmail = await a3.getPLEmail("pl");
+      const plEmail = await a3.getPLEmail('pl');
 
       // Send emails to multiple recipients asynchronously
       const emailPromises = plEmail.map(async (user) => {
@@ -657,8 +657,8 @@ exports.promoteTask2Done = async (req, res, next) => {
 
       // Continue immediately with sending the response
       res.status(200).json({
-        code: "S01",
-        message: "Task is updated",
+        code: 'S01',
+        message: 'Task promoted successfully',
       });
 
       // After a small delay, wait for all email promises to complete
@@ -666,14 +666,14 @@ exports.promoteTask2Done = async (req, res, next) => {
     } else {
       // Send the response when no email needs to be sent
       res.status(200).json({
-        success: "S01",
-        message: "Task is updated",
+        success: 'S01',
+        message: 'Task promoted successfully',
       });
     }
   } catch (error) {
     return res.status(500).json({
-      code: "E14",
-      message: "Internal Server Error.",
+      code: 'E14',
+      message: 'Internal Server Error.',
     });
   }
 };

@@ -56,18 +56,7 @@ const a3Model = {
       connection.release();
     }
   },
-  updateAppFromTask: async (apprnumber, appacronym) => {
-    const connection = await pool.promise().getConnection();
-    try {
-      const query = 'UPDATE application SET App_Rnumber=? WHERE App_Acronym=?';
-      const [results] = await connection.query(query, [apprnumber, appacronym]);
-      return results;
-    } catch (error) {
-      throw error;
-    } finally {
-      connection.release();
-    }
-  },
+
   getAllTasksByState: async (appacronym, state) => {
     const connection = await pool.promise().getConnection();
     try {
@@ -111,18 +100,6 @@ const a3Model = {
     try {
       const query = 'insert into task set ?';
       const [results] = await connection.query(query, taskObj);
-      return results;
-    } catch (error) {
-      throw error;
-    } finally {
-      connection.release();
-    }
-  },
-  updateTaskState: async (state, taskid) => {
-    const connection = await pool.promise().getConnection();
-    try {
-      const query = 'UPDATE task set Task_state=? WHERE Task_id=?';
-      const [results] = await connection.query(query, [state, taskid]);
       return results;
     } catch (error) {
       throw error;
