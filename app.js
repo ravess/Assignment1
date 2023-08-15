@@ -14,15 +14,15 @@ const port = process.env.PORT;
 //TO check for cookie
 app.use(cookieParser());
 // Allow frontend app to talk to backendurl
-// app.use(
-//   cors({
-//     origin: process.env.FRONTENDURL,
-//     allowedHeaders: ["Content-Type", "Authorization"],
-//     credentials: true,
-//     methods: ["GET", "POST", "PUT", "DELETE"],
-//   })
-// );
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.FRONTENDURL,
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+  })
+);
+// app.use(cors());
 
 // Handling Uncaught Exception before database, has to be near the top here.
 process.on("uncaughtException", (err) => {
@@ -35,16 +35,17 @@ process.on("uncaughtException", (err) => {
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json()); // Setup the body/json parser to handle form submits
 
+const a3 = require("./routes/a3Route");
 // const admin = require("./routes/adminRoute");
 // const auth = require("./routes/authRoute");
 // const user = require("./routes/userRoute");
 // const tms = require("./routes/tmsRoute");
-const a3 = require("./routes/a3Route");
-app.use(a3);
+
 // app.use(auth);
 // app.use(admin);
 // app.use(user);
 // app.use(tms);
+app.use(a3);
 
 // Handled unhandled routes (make sure is below the routes)
 // app.all("*", (req, res, next) => {
@@ -54,7 +55,7 @@ app.use(a3);
 app.all("*", (req, res, next) => {
   return res.status(500).json({
     code: "E01",
-    message: "Invalid URL",
+    // message: "Invalid URL",
   });
 });
 
