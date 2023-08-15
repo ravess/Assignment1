@@ -35,16 +35,16 @@ process.on("uncaughtException", (err) => {
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json()); // Setup the body/json parser to handle form submits
 
+const auth = require("./routes/authRoute");
+const admin = require("./routes/adminRoute");
+const user = require("./routes/userRoute");
+const tms = require("./routes/tmsRoute");
 const a3 = require("./routes/a3Route");
-// const admin = require("./routes/adminRoute");
-// const auth = require("./routes/authRoute");
-// const user = require("./routes/userRoute");
-// const tms = require("./routes/tmsRoute");
 
-// app.use(auth);
+app.use(auth);
 // app.use(admin);
-// app.use(user);
-// app.use(tms);
+app.use(user);
+app.use(tms);
 app.use(a3);
 
 // Handled unhandled routes (make sure is below the routes)

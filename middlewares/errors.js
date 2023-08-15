@@ -5,16 +5,17 @@ module.exports = (err, req, res, next) => {
 
   if (process.env.NODE_ENV === "development") {
     if (err.message.includes("Failed to decode")) {
-      res.status(500).json({
+      return res.status(500).json({
         code: "E01",
       });
+    } else {
+      return res.status(err.statusCode).json({
+        success: false,
+        error: err,
+        errMessage: err.message,
+        stack: err.stack,
+      });
     }
-    res.status(err.statusCode).json({
-      success: false,
-      error: err,
-      errMessage: err.message,
-      stack: err.stack,
-    });
   }
 
   if (process.env.NODE_ENV == "production") {
