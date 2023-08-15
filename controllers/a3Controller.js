@@ -382,7 +382,7 @@ exports.getTaskByState = async (req, res, next) => {
       });
     }
 
-    const allowedStates = ["Open", "toDolist", "Doing", "Done", "Closed"];
+    const allowedStates = ["Open", "toDoList", "Doing", "Done", "Closed"];
 
     if (!allowedStates.includes(req.body.Task_state.trim())) {
       return res.status(500).json({
