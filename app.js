@@ -42,7 +42,7 @@ const tms = require("./routes/tmsRoute");
 const a3 = require("./routes/a3Route");
 
 app.use(auth);
-// app.use(admin);
+app.use(admin);
 app.use(user);
 app.use(tms);
 app.use(a3);
