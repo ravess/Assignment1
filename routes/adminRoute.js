@@ -1,22 +1,19 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { isUserLoggedIn } = require('../controllers/authController');
+const { isUserLoggedIn } = require("../controllers/authController");
 const {
   getAllUsers,
   createUser,
   updateUser,
   getUser,
-  getGroups,
   createGroup,
-} = require('../controllers/adminController');
+} = require("../controllers/adminController");
 
-router.use(isUserLoggedIn);
-
-router.route('/admin/users').post(getAllUsers);
-// router.route('/admin/groups').post(getGroups);
-router.route('/admin/groups/create').post(createGroup);
-router.route('/admin/user/:userid').post(getUser);
-router.route('/admin/users/create').post(createUser);
-router.route('/admin/users/:userid/edit').put(updateUser);
+router.route("/admin/users").post(isUserLoggedIn, getAllUsers);
+// router.route("/admin/groups").post(getGroups);
+router.route("/admin/groups/create").post(isUserLoggedIn, createGroup);
+router.route("/admin/user/:userid").post(isUserLoggedIn, getUser);
+router.route("/admin/users/create").post(isUserLoggedIn, createUser);
+router.route("/admin/users/:userid/edit").put(isUserLoggedIn, updateUser);
 
 module.exports = router;

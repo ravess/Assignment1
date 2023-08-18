@@ -1,6 +1,6 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { isUserLoggedIn } = require('../controllers/authController');
+const { isUserLoggedIn } = require("../controllers/authController");
 // const UserController = require("../controllers/userController");
 const {
   getAllApps,
@@ -16,23 +16,25 @@ const {
   getPlan,
   updatePlan,
   getPlanColor,
-} = require('../controllers/tmsController');
+} = require("../controllers/tmsController");
 
-router.use(isUserLoggedIn);
+router.route("/apps").get(isUserLoggedIn, getAllApps);
+router.route("/apps/:appacronym").get(isUserLoggedIn, getApp);
 
-router.route('/apps').get(getAllApps);
-router.route('/apps/:appacronym').get(getApp);
-
-router.route('/apps/:appacronym/edit').put(updateApp);
-router.route('/apps/create').post(createApp);
-router.route('/apps/:appacronym/tasks').get(getAllTasks);
-router.route('/apps/:appacronym/tasks/:taskid').get(getTask);
-router.route('/apps/:appacronym/tasks/:taskid/edit').put(updateTask);
-router.route('/apps/:appacronym/tasks/create').post(createTask);
-router.route('/apps/:appacronym/plans').get(getAllPlans);
-router.route('/apps/:appacronym/plans/:planid').get(getPlan);
-router.route('/apps/:appacronym/plans/:planid/edit').put(updatePlan);
-router.route('/apps/:appacronym/plans/create').post(createPlan);
-router.route('/getplancolor/:planid').get(getPlanColor);
+router.route("/apps/:appacronym/edit").put(isUserLoggedIn, updateApp);
+router.route("/apps/create").post(isUserLoggedIn, createApp);
+router.route("/apps/:appacronym/tasks").get(isUserLoggedIn, getAllTasks);
+router.route("/apps/:appacronym/tasks/:taskid").get(isUserLoggedIn, getTask);
+router
+  .route("/apps/:appacronym/tasks/:taskid/edit")
+  .put(isUserLoggedIn, updateTask);
+router.route("/apps/:appacronym/tasks/create").post(isUserLoggedIn, createTask);
+router.route("/apps/:appacronym/plans").get(isUserLoggedIn, getAllPlans);
+router.route("/apps/:appacronym/plans/:planid").get(isUserLoggedIn, getPlan);
+router
+  .route("/apps/:appacronym/plans/:planid/edit")
+  .put(isUserLoggedIn, updatePlan);
+router.route("/apps/:appacronym/plans/create").post(isUserLoggedIn, createPlan);
+router.route("/getplancolor/:planid").get(isUserLoggedIn, getPlanColor);
 
 module.exports = router;
